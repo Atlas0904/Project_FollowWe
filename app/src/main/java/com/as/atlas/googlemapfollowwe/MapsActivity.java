@@ -1,13 +1,18 @@
 package com.as.atlas.googlemapfollowwe;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -17,6 +22,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.client.ChildEventListener;
@@ -24,6 +30,8 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.google.android.gms.appindexing.Action;
+import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
@@ -46,6 +54,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Locale;
 
 import static android.widget.Toast.LENGTH_LONG;
@@ -59,13 +68,21 @@ public class MapsActivity extends AppCompatActivity
         LocationListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
+    private static final long LOCATION_REQUEST_INTERVAL_MS = 500;
+    private static final long LOCATION_FAST_REQUEST_INTERVAL_MS = 250;
     private static boolean mLockedOnUserView = false;
+    
 
-    public static final int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
+
     public final String URL_FIREBASE = "https://followwe-7f0e8.firebaseio.com/";
 
 
     private Button buttonShow;
+    private TextView textViewLatitude;
+    private TextView textViewLongtitude;
+    private TextView textViewClickedLatLng;
+    private TextView textViewAddress;
+
     private CheckBox checkBox;
     private GoogleApiClient googleApiClient;
 
@@ -76,22 +93,42 @@ public class MapsActivity extends AppCompatActivity
 
 
     // Firebase section
-    private Firebase mFirebaseUserInfo;
+    private Firebase mFirebase;
+
     // Firebase chat room section
     private Firebase mFirebaseOnline;
+    // Use to indicate current user online on not, show name on firebase
     private Firebase mFirebaseUser;
+
+    // Below need to monitor Firebase change
+    private Firebase mFirebaseRoomInfo;
+    private Firebase mFirebaseUserInfo;
 
     private ValueEventListener mOnlineChangeListener;
     private ValueEventListener mUserChangeListener;
 
     //Local variable
     private Handler mHandler;
-    private UserPlaceSelectionListener userPlaceSelectionListener;
+    public final static int EVENT_RETURN_SEARCH_ADDRESS_RESULT = 1;
+
+
+    private MapPlaceSelectionListener mapPlaceSelectionListener;
     private UserInfoValueEventListener userInfoValueEventListener;
+    private UserOnlineChangeValueEventListener userOnlineChangeValueEventListener;
+
     private GoogleMapEventHandler googleMapEventHandler;
     private OnMapReadyCallback onMapReadyCallback;
 
-    // Note: rember to add package in Google console
+
+    // Current User Info
+    private CurrentUserInfo currentUserInfo;
+    /**
+     * ATTENTION: This was auto-generated to implement the App Indexing API.
+     * See https://g.co/AppIndexing/AndroidStudio for more information.
+     */
+    private GoogleApiClient client;
+
+    // Note: remember to add package in Google console
     // https://console.developers.google.com/apis/credentials?project=at-shareyourlocation
 
     @Override
@@ -117,7 +154,45 @@ public class MapsActivity extends AppCompatActivity
         });
 
         buttonShow = (Button) findViewById(R.id.buttonShow);
+        textViewLatitude = (TextView) findViewById(R.id.textViewLatitude);
+        textViewLongtitude = (TextView) findViewById(R.id.textViewLongitude);
+        textViewClickedLatLng = (TextView) findViewById(R.id.textViewClickedLatLng);
+        textViewAddress = (TextView) findViewById(R.id.textViewAddress);
+        mHandler = new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+                switch(msg.what){
+                    case EVENT_RETURN_SEARCH_ADDRESS_RESULT:
 
+
+                        final String addr = (String) msg.getData().getString("address");
+                        Log.d(TAG, "handleMessage: addr=" + addr);
+                        textViewAddress.setText(addr);
+
+                        double[] d = msg.getData().getDoubleArray("latLng");
+                        final LatLng latLng = new LatLng(d[0], d[1]);
+
+                        new AlertDialog.Builder(MapsActivity.this)
+                                .setTitle("Follow We: Marker")
+                                .setMessage("Do you want add marker on map?")
+                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // continue with delete
+                                        addMarker(latLng, addr, BitmapDescriptorFactory.HUE_RED);
+                                    }
+                                })
+                                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        // do nothing
+                                    }
+                                })
+                                .setIcon(android.R.drawable.ic_dialog_alert)
+                                .show();
+
+                        break;
+                }
+            }
+        };
 
         configGoogleApiClient();
         configLocationRequest();
@@ -125,58 +200,103 @@ public class MapsActivity extends AppCompatActivity
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 
-        userPlaceSelectionListener = new UserPlaceSelectionListener();
-        autocompleteFragment.setOnPlaceSelectedListener(userPlaceSelectionListener);
+        mapPlaceSelectionListener = new MapPlaceSelectionListener();
+        autocompleteFragment.setOnPlaceSelectedListener(mapPlaceSelectionListener);
 
 
         // Firebase section
         Firebase.setAndroidContext(this);
-        mFirebaseUserInfo = new Firebase(URL_FIREBASE).child("userinfo");
+        mFirebase = new Firebase(URL_FIREBASE);
 
-        // Firebase chat room section
-        String userid = "0904";
-        mFirebaseOnline = new Firebase(URL_FIREBASE).child(".info/connected");
-        mFirebaseUser = new Firebase(URL_FIREBASE).child("presence").child(userid);
-        log("mFirebaseOnline: " + mFirebaseOnline + " mFirebaseUser:" + mFirebaseUser);
+        createUser();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+    }
 
+    private void addMarker(LatLng latLng, String title, float color) {
+        googleMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .icon(BitmapDescriptorFactory.defaultMarker(color))
+                .title(title)
+                .snippet(latLng.toString())
+        );
+    }
 
-        mFirebaseUserInfo.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Log.d(TAG, "onChildAdded()");
-                Log.d(TAG, "dataSnapshot:" + dataSnapshot.getValue());
-                Log.d(TAG, "dataSnapshot.child(name):" + dataSnapshot.child("name").getValue());
-                Log.d(TAG, "dataSnapshot.child(lat):" + dataSnapshot.child("lat").getValue());
-                Log.d(TAG, "dataSnapshot.child(lng):" + dataSnapshot.child("lng").getValue());
-                Log.d(TAG, "dataSnapshot.getChildrenCount():" + dataSnapshot.getChildrenCount());
+    private void createUser() {
+        String name = getIntent().getStringExtra(CurrentUserInfo.NAME);
+        currentUserInfo = (name != null) ? new CurrentUserInfo(name) : null;
+        Log.d(TAG, "onCreate: " + currentUserInfo);
 
-                int i = 0;
-                for (DataSnapshot child : dataSnapshot.getChildren()) {
-                    if (child.getValue() != null)
-                        Log.d(TAG, "child index:" + (i++) + " " + String.valueOf(child.getValue()));
-                }
+        // Put user to user
+        if (currentUserInfo != null) updateUserToFirebase(currentUserInfo);
+    }
 
-            }
+    private void updateUserToFirebase(CurrentUserInfo currentUserInfo) {
 
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-            }
+        Log.d(TAG, "updateUserToFirebase: currentUserInfo=" + currentUserInfo);
 
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-            }
+        // Assigned default value first. Wait for Google map ready and update currnet value
+        User user = new User(currentUserInfo.name, currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude);
 
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-            }
-
-            @Override
-            public void onCancelled(FirebaseError firebaseError) {
-            }
-        });
+        mFirebaseRoomInfo = mFirebase.child(NodeDefineOnFirebase.NODE_ROOM_NO);
+        mFirebaseRoomInfo.child(String.valueOf(currentUserInfo.roomNo)).child(currentUserInfo.name).setValue(user);
+        userOnlineChangeValueEventListener = new UserOnlineChangeValueEventListener(mFirebase, currentUserInfo);  // set root
 
 
-        setPeople();
+        mFirebaseUser = mFirebase.child(NodeDefineOnFirebase.NODE_PRESENCE).child(currentUserInfo.name);  // Used to info on-line
+        mFirebaseOnline = mFirebase.child(".info/connected");   // User connection with FB server
+
+        mFirebaseUserInfo = mFirebase.child(NodeDefineOnFirebase.NODE_USER_ID);
+//        mFirebaseUserInfo.addChildEventListener(new ChildEventListener() {
+//            @Override
+//            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+//                Log.d(TAG, "onChildAdded()");
+//                Log.d(TAG, "dataSnapshot:" + dataSnapshot.getValue());
+//                Log.d(TAG, "dataSnapshot.child(name):" + dataSnapshot.child("name").getValue());
+//                Log.d(TAG, "dataSnapshot.child(lat):" + dataSnapshot.child("lat").getValue());
+//                Log.d(TAG, "dataSnapshot.child(lng):" + dataSnapshot.child("lng").getValue());
+//                Log.d(TAG, "dataSnapshot.getChildrenCount():" + dataSnapshot.getChildrenCount());
+//
+//                int i = 0;
+//                for (DataSnapshot child : dataSnapshot.getChildren()) {
+//                    if (child.getValue() != null)
+//                        Log.d(TAG, "child index:" + (i++) + " " + String.valueOf(child.getValue()));
+//                }
+//
+//            }
+//
+//            @Override
+//            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+//            }
+//
+//            @Override
+//            public void onChildRemoved(DataSnapshot dataSnapshot) {
+//            }
+//
+//            @Override
+//            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+//            }
+//
+//            @Override
+//            public void onCancelled(FirebaseError firebaseError) {
+//            }
+//        });
+
+        mFirebaseUserInfo.push().setValue(user);
+        Log.d(TAG, "updateUserToFirebase: user=" + user);
+        Log.d(TAG, "mFirebaseOnline: " + mFirebaseOnline + " mFirebaseUser:" + mFirebaseUser + " mFirebaseRoomInfo:" + mFirebaseRoomInfo);
+        //setPeople();
+    }
+
+    private void setPeople() {
+        User atlas = new User("Atlas", 25.033408, 121.564099);
+        User sandy = new User("Sandy", 25.043408, 121.564099);
+        User warhol = new User("Warhol", 25.043408, 121.574099);
+
+        mFirebaseUserInfo.push().setValue(atlas);    // 如果本身就是 class, 就不要再用  child("Person")
+        mFirebaseUserInfo.push().setValue(sandy);
+        mFirebaseUserInfo.push().setValue(warhol);
     }
 
     @Override
@@ -199,24 +319,15 @@ public class MapsActivity extends AppCompatActivity
             return;
         }
         googleMap.setMyLocationEnabled(true);
-
-
     }
 
-
-    private void setPeople() {
-        User atlas = new User("Atlas", 25.033408, 121.564099);
-        User sandy = new User("Sandy", 25.043408, 121.564099);
-        User warhol = new User("Warhol", 25.043408, 121.574099);
-
-        mFirebaseUserInfo.push().setValue(atlas);    // 如果本身就是 class, 就不要再用  child("Person")
-        mFirebaseUserInfo.push().setValue(sandy);
-        mFirebaseUserInfo.push().setValue(warhol);
-    }
 
     @Override
     protected void onStart() {
         super.onStart();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.connect();
 
         // Firebase chatroom section
         // Finally, a little indication of connection status
@@ -237,37 +348,63 @@ public class MapsActivity extends AppCompatActivity
             }
         });
 
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Maps Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://com.as.atlas.googlemapfollowwe/http/host/path")
+        );
+        AppIndex.AppIndexApi.start(client, viewAction);
     }
 
     @Override
     protected void onStop() {
         super.onStop();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        Action viewAction = Action.newAction(
+                Action.TYPE_VIEW, // TODO: choose an action type.
+                "Maps Page", // TODO: Define a title for the content shown.
+                // TODO: If you have web page content that matches this app activity's content,
+                // make sure this auto-generated web page URL is correct.
+                // Otherwise, set the URL to null.
+                Uri.parse("http://host/path"),
+                // TODO: Make sure this auto-generated app URL is correct.
+                Uri.parse("android-app://com.as.atlas.googlemapfollowwe/http/host/path")
+        );
+        AppIndex.AppIndexApi.end(client, viewAction);
         //disableLocationUpdate();
+        // ATTENTION: This was auto-generated to implement the App Indexing API.
+        // See https://g.co/AppIndexing/AndroidStudio for more information.
+        client.disconnect();
     }
 
     private void configGoogleApiClient() {
-        log("configGoogleApiClient");
+        Log.d(TAG, "configGoogleApiClient");
 
         googleApiClient = new GoogleApiClient.Builder(this).
                 addConnectionCallbacks(this).
                 addOnConnectionFailedListener(this).
                 addApi(LocationServices.API).
                 // For place Id
-                addApi(Places.GEO_DATA_API).
-                addApi(Places.PLACE_DETECTION_API).
-                enableAutoManage(this, this).
-                build();
+                        addApi(Places.GEO_DATA_API).
+                        addApi(Places.PLACE_DETECTION_API).
+                        enableAutoManage(this, this).
+                        build();
         googleApiClient.connect();
     }
 
     private void configLocationRequest() {
-        log("configLocationRequest");
+        Log.d(TAG, "configLocationRequest");
         locationRequest = new LocationRequest();
-        // 設定讀取位置資訊的間隔時間為一秒（1000ms）
-        locationRequest.setInterval(1000);
-        // 設定讀取位置資訊最快的間隔時間為一秒（1000ms）
-        locationRequest.setFastestInterval(1000);
-        // 設定優先讀取高精確度的位置資訊（GPS）
+        locationRequest.setInterval(LOCATION_REQUEST_INTERVAL_MS);
+        locationRequest.setFastestInterval(LOCATION_FAST_REQUEST_INTERVAL_MS);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 
@@ -325,24 +462,24 @@ public class MapsActivity extends AppCompatActivity
         LocationServices.FusedLocationApi.requestLocationUpdates(
                 googleApiClient, locationRequest, MapsActivity.this);
 
-        currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-        LatLng start = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());   // 有可能 Geany 一開始給錯  導致沒有路線圖
 
+        currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
         if (currentLocation != null) {
+            LatLng start = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());   // 有可能 Geany 一開始給錯  導致沒有路線圖
             googleMap.addMarker(new MarkerOptions()
                     .position(start)
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET))
                     .title(start.toString())
             );
+            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start, 16));
         }
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start, 17));
 
     }
 
     private void createLocationRequest() {    // 一直 update
         if (locationRequest == null) {
             locationRequest = new LocationRequest();
-            locationRequest.setInterval(1000);
+            locationRequest.setInterval(LOCATION_REQUEST_INTERVAL_MS);
             //locationRequest.setFastestInterval();  其他 app 拿
             locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         }
@@ -350,8 +487,6 @@ public class MapsActivity extends AppCompatActivity
 
     @Override
     public void onConnectionSuspended(int i) {
-        // Google Services連線中斷
-        // int參數是連線中斷的代號
 
     }
 
@@ -370,17 +505,34 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onLocationChanged(Location location) {
         log("onLocationChanged location: " + location);
-        if (mLockedOnUserView) {
-            LatLng currentLocation = new LatLng(location.getLatitude(), location.getLongitude());
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentLocation));
+        textViewLatitude.setText(String.valueOf(location.getLatitude()));
+        textViewLongtitude.setText(String.valueOf(location.getLongitude()));
 
-            log("onLocationChanged currentLocation: " + currentLocation);
+        updateCurrentUserLocation(location);
+
+        if (mLockedOnUserView) {
+            googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentUserInfo.latLng));
         }
+    }
+
+    private void updateCurrentUserLocation(Location location) {
+        currentUserInfo.latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        User user = new User(currentUserInfo.name, currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude);
+        mFirebaseRoomInfo.child(String.valueOf(currentUserInfo.roomNo)).child(currentUserInfo.name).setValue(user);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == PLACE_AUTOCOMPLETE_REQUEST_CODE) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG, "onActivityResult: requestCode=" + requestCode + " resultCode=" + resultCode);
+        if (requestCode == RequestCode.REQUEST_CODE_LOGIN_ACTIVITY) {
+            if (resultCode == RESULT_OK) {
+                String name = data.getStringExtra(CurrentUserInfo.NAME);
+                currentUserInfo = (name != null) ? new CurrentUserInfo(name) : null;
+                Log.d(TAG, "onActivityResult: " + currentUserInfo);
+            }
+
+        } else if (requestCode == RequestCode.REQUEST_CODE_PLACE_AUTOCOMPLETE_ACTIVITY) {
             if (resultCode == RESULT_OK) {
                 Place place = PlaceAutocomplete.getPlace(this, data);
                 Log.i(TAG, "Place: " + place.getName());   // fragment return
@@ -399,18 +551,47 @@ public class MapsActivity extends AppCompatActivity
         Log.d(TAG, s);
     }
 
+    public class SearchAddressThread implements Runnable {
+
+        Geocoder geocoder;
+        LatLng latLng;
+        List<Address> addresses;
+
+        public SearchAddressThread(Geocoder geocoder, LatLng latLng) {
+            this.geocoder = geocoder;
+            this.latLng = latLng;
+        }
+
+        public void run() {
+            try {
+                addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            String address = addresses.get(0).getAddressLine(0);
+            Log.d(TAG, "SearchAddressThread: addresses= " + addresses + " address= " + address);
+
+            Message msg = mHandler.obtainMessage(EVENT_RETURN_SEARCH_ADDRESS_RESULT);
+            Bundle data = new Bundle();
+            data.putString("address", address);
+            data.putDoubleArray("latLng", new double[] {latLng.latitude, latLng.longitude});
+            msg.setData(data);
+
+            mHandler.sendMessage(msg);
+
+        }
+    }
+
+
     @Override
     public void onMapClick(final LatLng latLng) {
         Log.d(TAG, "onMapClick latLng:" + latLng);
-        IndoorBuilding building = googleMap.getFocusedBuilding();  // null?
-        Log.d(TAG, "building: " + building);
+        textViewClickedLatLng.setText(latLng.toString());
 
-        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        try {
-            Log.d(TAG, "Address:" + geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1).toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        final Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+        Runnable r = new SearchAddressThread(geocoder, latLng);
+        new Thread(r).start();
 
         new Thread(new Runnable() {
             @Override
@@ -434,7 +615,6 @@ public class MapsActivity extends AppCompatActivity
                         });
             }
         }).start();
-
 
 
     }

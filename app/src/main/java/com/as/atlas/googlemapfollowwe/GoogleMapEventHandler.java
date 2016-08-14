@@ -10,6 +10,7 @@ import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 /**
@@ -17,7 +18,7 @@ import com.google.android.gms.maps.model.MarkerOptions;
  */
 public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTask.FetchUserBitmapResponse{
     public final static String TAG =GoogleMapEventHandler.class.getSimpleName();
-    private GoogleMap googleMap;
+    private static GoogleMap googleMap;
 
     private static final int LETTER_ON_ICON = 1;
     private static final int ICON_SIZE = 128;
@@ -31,8 +32,6 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
         /*
          * Ref: http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=A|FF0000|000000  // Will show A on above example
          */
-
-
         Log.d(TAG, "showOnlineUserOnMap: name=" + name + " lat= " + lat + " lng=" + lng);
         LatLng latLng = new LatLng(lat, lng);
         String url = "http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=" + name.substring(0, LETTER_ON_ICON) + "|FF0000|000000";
@@ -40,7 +39,7 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
     }
 
     // 在地圖加入指定位置與標題的標記
-    public void addMarker(LatLng place, String title, String snippet, Bitmap bitmap) {
+    public static Marker addMarker(LatLng place, String title, String snippet, Bitmap bitmap) {
 
         BitmapDescriptor icon = getMarkedIcon(bitmap);
         Log.d(TAG,"title: " + title + " snippet:" + snippet);
@@ -51,10 +50,28 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
                 .snippet(snippet.toString())
                 .icon(icon);
 
-        googleMap.addMarker(markerOptions);
+        return addMarker(markerOptions);
     }
 
-    private BitmapDescriptor getMarkedIcon(Bitmap bitmap) {
+    public static Marker addMarker(LatLng place, String title, String snippet, BitmapDescriptor icon) {
+
+        Log.d(TAG,"addMarker: title=" + title + " snippet=" + snippet);
+
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(place)
+                .title(title.toString())
+                .snippet(snippet.toString())
+                .flat(true)
+                .icon(icon);
+
+        return addMarker(markerOptions);
+    }
+
+    private static Marker addMarker(MarkerOptions markerOptions) {
+        return googleMap.addMarker(markerOptions);
+    }
+
+    private static BitmapDescriptor getMarkedIcon(Bitmap bitmap) {
         BitmapDescriptor icon = (bitmap!= null) ? BitmapDescriptorFactory.fromBitmap(bitmap) : BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher);
         return icon;
     }
@@ -74,8 +91,13 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
 
     @Override
     public void responseWithFetchUserBitmapResult(LatLng latLng, String title, String snippet, Bitmap bitmap) {
+        // Use Google map alpha icon
+        /*
         Bitmap scaledBitmap = Utils.scaleBitmap(bitmap, ICON_SIZE, ICON_SIZE);
         addMarker(latLng, title, snippet, scaledBitmap);
+        */
+        BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.mipmap.icon_user_sandy_32);
+        addMarker(latLng, title, snippet, icon);
         moveCamera(latLng, 16);
     }
 

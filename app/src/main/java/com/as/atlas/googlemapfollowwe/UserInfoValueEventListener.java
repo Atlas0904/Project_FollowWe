@@ -3,6 +3,7 @@ package com.as.atlas.googlemapfollowwe;
 import android.util.Log;
 
 import com.firebase.client.DataSnapshot;
+import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
 
@@ -22,25 +23,26 @@ public class UserInfoValueEventListener implements ValueEventListener {
 
     @Override
     public void onDataChange(DataSnapshot dataSnapshot) {
-        for (DataSnapshot childPerson: dataSnapshot.getChildren()) {
-            String name = (String) childPerson.child("name").getValue();
-            double lat = (double) childPerson.child("lat").getValue();
-            double lng = (double) childPerson.child("lng").getValue();
+//        for (DataSnapshot childPerson: dataSnapshot.getChildren()) {
+//            String name = (String) childPerson.child("name").getValue();
+//            double lat = (double) childPerson.child("lat").getValue();
+//            double lng = (double) childPerson.child("lng").getValue();
+//
+//            Log.d(TAG, "UserInfoValueEventListener: 1st method data name:"+ name + " lat:" + lat + " lng:" +lng);
+//            if (googleMapEventHandler!= null) googleMapEventHandler.showOnlineUserOnMap(name, lat, lng);
+//        }
 
-            Log.d(TAG, "1st method data name:"+ name + " lat:" + lat + " lng:" +lng);
-            if (googleMapEventHandler!= null) googleMapEventHandler.showOnlineUserOnMap(name, lat, lng);
+        for (DataSnapshot child: dataSnapshot.getChildren()) {
+            User user = child.getValue(User.class);
+            Log.d(TAG, "UserInfoValueEventListener: User= " + user);
+//            if (googleMapEventHandler!= null) googleMapEventHandler.showOnlineUserOnMap(user.getName(), user.getLat(), user.getLng());
         }
-
-        for (DataSnapshot childPerson: dataSnapshot.getChildren()) {
-            User p =childPerson.getValue(User.class);
-            Log.d(TAG, "2nd method Person: " + p);
-        }
-
-        HashMap<String, User> map = null;
-        for (DataSnapshot child : dataSnapshot.getChildren()) {
-            map = (HashMap<String, User>) child.getValue();
-            Log.d(TAG, "list:" + map);
-        }
+//
+//        HashMap<String, User> map = null;
+//        for (DataSnapshot child : dataSnapshot.getChildren()) {
+//            map = (HashMap<String, User>) child.getValue();
+//            Log.d(TAG, "UserInfoValueEventListener: list:" + map);
+//        }
     }
 
     @Override

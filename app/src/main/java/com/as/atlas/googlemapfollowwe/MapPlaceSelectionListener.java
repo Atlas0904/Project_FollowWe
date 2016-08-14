@@ -9,8 +9,8 @@ import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 /**
  * Created by atlas on 2016/8/10.
  */
-public class UserPlaceSelectionListener implements PlaceSelectionListener {
-    private static final String TAG = UserPlaceSelectionListener.class.getSimpleName();
+public class MapPlaceSelectionListener implements PlaceSelectionListener {
+    private static final String TAG = MapPlaceSelectionListener.class.getSimpleName();
     public String suggestedPlace;
 
     @Override

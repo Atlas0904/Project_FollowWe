@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Google map - Follow WE!</string>
     <string name="title_activity_maps">FolloWe</string>
+    <string name="title_activity_login">Login</string>
 
 
     <string name="title_update_location">記事儲存的位置</string>

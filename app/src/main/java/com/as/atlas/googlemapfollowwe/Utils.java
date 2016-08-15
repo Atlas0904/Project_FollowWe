@@ -5,7 +5,9 @@ import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.util.Log;
 
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -116,6 +118,11 @@ public class Utils {
         }
 
         return null;
+    }
+
+    public static LatLng doublePairToLatLng(double[] place) {
+        if (place == null)  return null;
+        return new LatLng(place[0], place[1]);
     }
 
     public static byte[] urlToByte(String urlString) {

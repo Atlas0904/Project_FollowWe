@@ -18,10 +18,12 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -172,13 +174,23 @@ public class MapsActivity extends AppCompatActivity
                         double[] d = msg.getData().getDoubleArray("latLng");
                         final LatLng latLng = new LatLng(d[0], d[1]);
 
-                        new AlertDialog.Builder(MapsActivity.this)
-                                .setTitle("Follow We: Marker")
+
+                        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+
+                        // Set up the input
+                        final EditText input = new EditText(MapsActivity.this);
+                        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
+                        input.setInputType(InputType.TYPE_CLASS_TEXT);
+                        builder.setView(input);
+
+                        builder.setTitle("Follow We: Marker")
                                 .setMessage("Do you want add marker on map?")
-                                .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                                .setView(input);
+
+                        builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
                                         // continue with delete
-                                        addMarker(latLng, addr, BitmapDescriptorFactory.HUE_RED);
+                                        addMarker(latLng, input.getText().toString() + addr, BitmapDescriptorFactory.HUE_RED);
                                     }
                                 })
                                 .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
@@ -569,7 +581,8 @@ public class MapsActivity extends AppCompatActivity
                 e.printStackTrace();
             }
 
-            String address = addresses.get(0).getAddressLine(0);
+            String address = "(No mapping address)";
+            address = addresses!= null ? addresses.get(0).getAddressLine(0) : address;
             Log.d(TAG, "SearchAddressThread: addresses= " + addresses + " address= " + address);
 
             Message msg = mHandler.obtainMessage(EVENT_RETURN_SEARCH_ADDRESS_RESULT);

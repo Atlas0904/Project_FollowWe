@@ -76,7 +76,7 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
         return icon;
     }
 
-    public void moveCamera(LatLng latLng, int scale) {
+    public static void moveCamera(LatLng latLng, int scale) {
 
         CameraPosition cameraPosition =
                 new CameraPosition.Builder()
@@ -99,6 +99,15 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
         BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.mipmap.icon_user_sandy_32);
         addMarker(latLng, title, snippet, icon);
         moveCamera(latLng, 16);
+    }
+
+    public static void addMarker(LatLng latLng, String title, float color) {
+        googleMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .icon(BitmapDescriptorFactory.defaultMarker(color))
+                .title(title)
+                .snippet(latLng.toString())
+        );
     }
 
 }

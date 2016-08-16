@@ -20,6 +20,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -53,6 +54,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.IndoorBuilding;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
@@ -67,7 +69,7 @@ public class MapsActivity extends AppCompatActivity
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         OnMapReadyCallback,
-        LocationListener {
+        LocationListener, GoogleMap.OnInfoWindowLongClickListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     private static final long LOCATION_REQUEST_INTERVAL_MS = 500;
@@ -174,32 +176,28 @@ public class MapsActivity extends AppCompatActivity
                         double[] d = msg.getData().getDoubleArray("latLng");
                         final LatLng latLng = new LatLng(d[0], d[1]);
 
+                        LayoutInflater layoutInflater = LayoutInflater.from(MapsActivity.this);
+                        final View view = layoutInflater.inflate(R.layout.dialog_input_message, null);
 
                         AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
-
-                        // Set up the input
-                        final EditText input = new EditText(MapsActivity.this);
-                        // Specify the type of input expected; this, for example, sets the input as a password, and will mask the text
-                        input.setInputType(InputType.TYPE_CLASS_TEXT);
-                        builder.setView(input);
-
-                        builder.setTitle("Follow We: Marker")
-                                .setMessage("Do you want add marker on map?")
-                                .setView(input);
+                        builder.setView(view)
+                                .setTitle("Follow We: Marker");
+                        //.setMessage("Do you want add marker on map?")
 
                         builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        // continue with delete
-                                        addMarker(latLng, input.getText().toString() + addr, BitmapDescriptorFactory.HUE_RED);
-                                    }
-                                })
-                                .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        // do nothing
-                                    }
-                                })
-                                .setIcon(android.R.drawable.ic_dialog_alert)
-                                .show();
+                            public void onClick(DialogInterface dialog, int which) {
+                                // continue with delete
+                                EditText editTextMsg = (EditText) view.findViewById(R.id.editTextLeaveMsg);
+                                GoogleMapEventHandler.addMarker(latLng, editTextMsg.getText().toString(), addr, BitmapDescriptorFactory.HUE_RED);
+                            }
+                        })
+                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // do nothing
+                            }
+                        })
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
 
                         break;
                 }
@@ -224,15 +222,6 @@ public class MapsActivity extends AppCompatActivity
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-    }
-
-    private void addMarker(LatLng latLng, String title, float color) {
-        googleMap.addMarker(new MarkerOptions()
-                .position(latLng)
-                .icon(BitmapDescriptorFactory.defaultMarker(color))
-                .title(title)
-                .snippet(latLng.toString())
-        );
     }
 
     private void createUser() {
@@ -319,6 +308,7 @@ public class MapsActivity extends AppCompatActivity
         userInfoValueEventListener = new UserInfoValueEventListener(googleMapEventHandler);
         mFirebaseUserInfo.addValueEventListener(userInfoValueEventListener);
         googleMap.setOnMapClickListener(this);
+        googleMap.setOnInfoWindowLongClickListener(this);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -477,13 +467,9 @@ public class MapsActivity extends AppCompatActivity
 
         currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
         if (currentLocation != null) {
-            LatLng start = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());   // 有可能 Geany 一開始給錯  導致沒有路線圖
-            googleMap.addMarker(new MarkerOptions()
-                    .position(start)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_VIOLET))
-                    .title(start.toString())
-            );
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start, 16));
+            LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());   // 有可能 Geany 一開始給錯  導致沒有路線圖
+            GoogleMapEventHandler.addMarker(latLng, latLng.toString(), BitmapDescriptorFactory.HUE_VIOLET);
+            GoogleMapEventHandler.moveCamera(latLng, 16);
         }
 
     }
@@ -563,6 +549,8 @@ public class MapsActivity extends AppCompatActivity
         Log.d(TAG, s);
     }
 
+
+
     public class SearchAddressThread implements Runnable {
 
         Geocoder geocoder;
@@ -628,7 +616,10 @@ public class MapsActivity extends AppCompatActivity
                         });
             }
         }).start();
+    }
 
-
+    @Override
+    public void onInfoWindowLongClick(Marker marker) {
+        marker.remove();
     }
 }

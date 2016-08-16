@@ -38,44 +38,6 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
         (new FetchUserBitmapTask(latLng, name, latLng.toString(), this)).execute(url);
     }
 
-    // 在地圖加入指定位置與標題的標記
-    public static Marker addMarker(LatLng place, String title, String snippet, Bitmap bitmap) {
-
-        BitmapDescriptor icon = getMarkedIcon(bitmap);
-        Log.d(TAG,"title: " + title + " snippet:" + snippet);
-
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(place)
-                .title(title.toString())
-                .snippet(snippet.toString())
-                .icon(icon);
-
-        return addMarker(markerOptions);
-    }
-
-    public static Marker addMarker(LatLng place, String title, String snippet, BitmapDescriptor icon) {
-
-        Log.d(TAG,"addMarker: title=" + title + " snippet=" + snippet);
-
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(place)
-                .title(title.toString())
-                .snippet(snippet.toString())
-                .flat(true)
-                .icon(icon);
-
-        return addMarker(markerOptions);
-    }
-
-    private static Marker addMarker(MarkerOptions markerOptions) {
-        return googleMap.addMarker(markerOptions);
-    }
-
-    private static BitmapDescriptor getMarkedIcon(Bitmap bitmap) {
-        BitmapDescriptor icon = (bitmap!= null) ? BitmapDescriptorFactory.fromBitmap(bitmap) : BitmapDescriptorFactory.fromResource(R.mipmap.ic_launcher);
-        return icon;
-    }
-
     public static void moveCamera(LatLng latLng, int scale) {
 
         CameraPosition cameraPosition =
@@ -84,7 +46,6 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
                         .zoom(scale)
                         .build();
 
-        // 使用動畫的效果移動地圖
         googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 //        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, scale));
     }
@@ -101,13 +62,45 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
         moveCamera(latLng, 16);
     }
 
-    public static void addMarker(LatLng latLng, String title, float color) {
-        googleMap.addMarker(new MarkerOptions()
-                .position(latLng)
-                .icon(BitmapDescriptorFactory.defaultMarker(color))
+    public static Marker addMarker(LatLng place, String title, String snippet, Bitmap bitmap) {
+        if (bitmap == null)  return null;
+
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(place)
+                .title(title.toString())
+                .snippet(snippet.toString())
+                .icon(BitmapDescriptorFactory.fromBitmap(bitmap));
+
+        return addMarker(markerOptions);
+    }
+
+    public static Marker addMarker(LatLng place, String title, String snippet, BitmapDescriptor icon) {
+
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(place)
+                .title(title.toString())
+                .snippet(snippet.toString())
+                .flat(true)
+                .icon(icon);
+
+        return addMarker(markerOptions);
+    }
+
+    public static Marker addMarker(LatLng latLng, String title, String snippet, float color) {
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(latLng)
                 .title(title)
-                .snippet(latLng.toString())
-        );
+                .snippet(snippet)
+                .icon(BitmapDescriptorFactory.defaultMarker(color));
+        return addMarker(markerOptions);
+    }
+
+    public static Marker addMarker(LatLng latLng, String title, float color) {
+        return addMarker(latLng, title, latLng.toString(), color);
+    }
+
+    private static Marker addMarker(MarkerOptions markerOptions) {
+        return googleMap.addMarker(markerOptions);
     }
 
 }

@@ -15,6 +15,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -162,6 +163,15 @@ public class MapsActivity extends AppCompatActivity
         textViewLongtitude = (TextView) findViewById(R.id.textViewLongitude);
         textViewClickedLatLng = (TextView) findViewById(R.id.textViewClickedLatLng);
         textViewAddress = (TextView) findViewById(R.id.textViewAddress);
+
+        FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(MapsActivity.this, "Clicked", Toast.LENGTH_SHORT).show();
+            }
+        });
+
         mHandler = new Handler() {
             @Override
             public void handleMessage(Message msg) {
@@ -222,6 +232,8 @@ public class MapsActivity extends AppCompatActivity
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
+
+
     }
 
     private void createUser() {
@@ -570,7 +582,7 @@ public class MapsActivity extends AppCompatActivity
             }
 
             String address = "(No mapping address)";
-            address = addresses!= null ? addresses.get(0).getAddressLine(0) : address;
+            address = (addresses != null && addresses.get(0) != null) ? addresses.get(0).getAddressLine(0) : address;
             Log.d(TAG, "SearchAddressThread: addresses= " + addresses + " address= " + address);
 
             Message msg = mHandler.obtainMessage(EVENT_RETURN_SEARCH_ADDRESS_RESULT);

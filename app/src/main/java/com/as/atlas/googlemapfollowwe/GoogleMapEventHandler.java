@@ -86,6 +86,14 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
         return addMarker(markerOptions);
     }
 
+    public static MarkerOptions createMarkerOptions(LatLng latLng, String title, String snippet, float color) {
+        return new MarkerOptions()
+                .position(latLng)
+                .title(title)
+                .snippet(snippet)
+                .icon(BitmapDescriptorFactory.defaultMarker(color));
+    }
+
     public static Marker addMarker(LatLng latLng, String title, String snippet, float color) {
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(latLng)
@@ -100,6 +108,7 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
     }
 
     private static Marker addMarker(MarkerOptions markerOptions) {
+        if (googleMap == null)  return null;
         return googleMap.addMarker(markerOptions);
     }
 

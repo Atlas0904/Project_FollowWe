@@ -13,6 +13,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -22,6 +23,9 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -86,7 +90,7 @@ public class MapsActivity extends AppCompatActivity
     private TextView textViewLatitude;
     private TextView textViewLongtitude;
     private TextView textViewClickedLatLng;
-    private TextView textViewAddress;
+    public static TextView textViewAddress;  // May cause leak
 
     private CheckBox checkBox;
     private GoogleApiClient googleApiClient;
@@ -110,7 +114,6 @@ public class MapsActivity extends AppCompatActivity
     private Firebase mFirebaseUserInfo;
 
     private ValueEventListener mOnlineChangeListener;
-    private ValueEventListener mUserChangeListener;
 
     //Local variable
     private Handler mHandler;
@@ -135,6 +138,36 @@ public class MapsActivity extends AppCompatActivity
 
     // Note: remember to add package in Google console
     // https://console.developers.google.com/apis/credentials?project=at-shareyourlocation
+
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.activity_maps_options_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        Log.d(TAG, "onOptionsItemSelected: id=" +id);
+
+        switch (id){
+            case R.id.menu_save_points:
+                Log.d(TAG, "onOptionsItemSelected: menu_save_points");
+                mapPlaceSelectionListener.saveMarkerToSharePref();
+                break;
+            case R.id.menu_clear_points:
+                Log.d(TAG, "onOptionsItemSelected: menu_clear_points");
+                mapPlaceSelectionListener.resetAllMarkerOnMap();
+                break;
+            case R.id.menu_sync_to_cloud:
+                break;
+            default:
+                return false;
+        }
+        return true;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -168,51 +201,11 @@ public class MapsActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MapsActivity.this, "Clicked", Toast.LENGTH_SHORT).show();
+                GoogleMapEventHandler.moveCamera(currentUserInfo.latLng, 16);
+                Toast.makeText(MapsActivity.this, "Synced", Toast.LENGTH_SHORT).show();
             }
         });
 
-        mHandler = new Handler() {
-            @Override
-            public void handleMessage(Message msg) {
-                switch(msg.what){
-                    case EVENT_RETURN_SEARCH_ADDRESS_RESULT:
-
-
-                        final String addr = (String) msg.getData().getString("address");
-                        Log.d(TAG, "handleMessage: addr=" + addr);
-                        textViewAddress.setText(addr);
-
-                        double[] d = msg.getData().getDoubleArray("latLng");
-                        final LatLng latLng = new LatLng(d[0], d[1]);
-
-                        LayoutInflater layoutInflater = LayoutInflater.from(MapsActivity.this);
-                        final View view = layoutInflater.inflate(R.layout.dialog_input_message, null);
-
-                        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
-                        builder.setView(view)
-                                .setTitle("Follow We: Marker");
-                        //.setMessage("Do you want add marker on map?")
-
-                        builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // continue with delete
-                                EditText editTextMsg = (EditText) view.findViewById(R.id.editTextLeaveMsg);
-                                GoogleMapEventHandler.addMarker(latLng, editTextMsg.getText().toString(), addr, BitmapDescriptorFactory.HUE_RED);
-                            }
-                        })
-                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // do nothing
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-
-                        break;
-                }
-            }
-        };
 
         configGoogleApiClient();
         configLocationRequest();
@@ -220,7 +213,7 @@ public class MapsActivity extends AppCompatActivity
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 
-        mapPlaceSelectionListener = new MapPlaceSelectionListener();
+        mapPlaceSelectionListener = new MapPlaceSelectionListener(this);
         autocompleteFragment.setOnPlaceSelectedListener(mapPlaceSelectionListener);
 
 
@@ -317,6 +310,7 @@ public class MapsActivity extends AppCompatActivity
         Log.d(TAG, "onMapReady: map=" + googleMap);
         this.googleMap = googleMap;
         googleMapEventHandler = new GoogleMapEventHandler(googleMap);
+        mapPlaceSelectionListener.putMarkerListToMap();
         userInfoValueEventListener = new UserInfoValueEventListener(googleMapEventHandler);
         mFirebaseUserInfo.addValueEventListener(userInfoValueEventListener);
         googleMap.setOnMapClickListener(this);
@@ -375,6 +369,14 @@ public class MapsActivity extends AppCompatActivity
                 Uri.parse("android-app://com.as.atlas.googlemapfollowwe/http/host/path")
         );
         AppIndex.AppIndexApi.start(client, viewAction);
+
+
+    }
+
+    @Override
+    protected void onResume() {
+        Log.d(TAG, "onResume()");
+        super.onResume();
     }
 
     @Override
@@ -397,6 +399,18 @@ public class MapsActivity extends AppCompatActivity
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client.disconnect();
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mapPlaceSelectionListener.saveMarkerToSharePref();
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        mapPlaceSelectionListener.putMarkerListToMap();
     }
 
     private void configGoogleApiClient() {
@@ -521,7 +535,7 @@ public class MapsActivity extends AppCompatActivity
         updateCurrentUserLocation(location);
 
         if (mLockedOnUserView) {
-            googleMap.moveCamera(CameraUpdateFactory.newLatLng(currentUserInfo.latLng));
+            GoogleMapEventHandler.moveCamera(currentUserInfo.latLng, 16);
         }
     }
 
@@ -562,48 +576,13 @@ public class MapsActivity extends AppCompatActivity
     }
 
 
-
-    public class SearchAddressThread implements Runnable {
-
-        Geocoder geocoder;
-        LatLng latLng;
-        List<Address> addresses;
-
-        public SearchAddressThread(Geocoder geocoder, LatLng latLng) {
-            this.geocoder = geocoder;
-            this.latLng = latLng;
-        }
-
-        public void run() {
-            try {
-                addresses = geocoder.getFromLocation(latLng.latitude, latLng.longitude, 1);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            String address = "(No mapping address)";
-            address = (addresses != null && addresses.get(0) != null) ? addresses.get(0).getAddressLine(0) : address;
-            Log.d(TAG, "SearchAddressThread: addresses= " + addresses + " address= " + address);
-
-            Message msg = mHandler.obtainMessage(EVENT_RETURN_SEARCH_ADDRESS_RESULT);
-            Bundle data = new Bundle();
-            data.putString("address", address);
-            data.putDoubleArray("latLng", new double[] {latLng.latitude, latLng.longitude});
-            msg.setData(data);
-
-            mHandler.sendMessage(msg);
-
-        }
-    }
-
-
     @Override
     public void onMapClick(final LatLng latLng) {
         Log.d(TAG, "onMapClick latLng:" + latLng);
         textViewClickedLatLng.setText(latLng.toString());
 
         final Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        Runnable r = new SearchAddressThread(geocoder, latLng);
+        Runnable r = mapPlaceSelectionListener.createSearchAddressThread(geocoder, latLng);
         new Thread(r).start();
 
         new Thread(new Runnable() {

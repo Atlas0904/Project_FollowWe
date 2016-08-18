@@ -18,7 +18,7 @@ public class CurrentUserInfo {
     private String pwd;
     public int roomNo;
     public LatLng latLng;
-
+    public Place destination;
 
     public CurrentUserInfo(String name, String pwd, int roomNo) {
         this.name = name;
@@ -35,6 +35,7 @@ public class CurrentUserInfo {
 
     @Override
     public String toString() {
-        return "CurrentUserInfo: name=" + name + " pwd=" + pwd + " roomNo=" + roomNo + " latLng=" + latLng;
+        return "CurrentUserInfo: name=" + name + " pwd=" + pwd + " roomNo=" + roomNo + " latLng=" + latLng + " destination=" + destination;
+
     }
 }

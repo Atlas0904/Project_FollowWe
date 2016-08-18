@@ -1,5 +1,6 @@
 package com.as.atlas.googlemapfollowwe;
 
+import android.location.Location;
 import android.util.Log;
 
 import com.firebase.client.ChildEventListener;
@@ -25,15 +26,29 @@ public class UserOnlineChangeValueEventListener implements ValueEventListener, C
 
     private static final String TAG = UserOnlineChangeValueEventListener.class.getSimpleName();
     private Firebase root;
+    private Firebase ref;
+    private CurrentUserInfo currentUserInfo;
     private BitmapDescriptor defaultIcon = BitmapDescriptorFactory.fromResource(R.mipmap.icon_user_boy);
 
     HashMap<String, UserMisc> users;
 
     public UserOnlineChangeValueEventListener(Firebase root, CurrentUserInfo currentUserInfo) {
         this.root = root;
-        root.child(NodeDefineOnFirebase.NODE_ROOM_NO).child(String.valueOf(currentUserInfo.roomNo)).addValueEventListener(this);
-        root.child(NodeDefineOnFirebase.NODE_ROOM_NO).child(String.valueOf(currentUserInfo.roomNo)).addChildEventListener(this);
+        this.currentUserInfo = currentUserInfo;
+        ref = this.root.child(NodeDefineOnFirebase.NODE_ROOM_NO).child(String.valueOf(currentUserInfo.roomNo)).child(NodeDefineOnFirebase.NODE_USER);
+        ref.addValueEventListener(this);
+        ref.addChildEventListener(this);
         users = new HashMap<String, UserMisc>();
+    }
+
+    public void updateCurrentUserLocation(CurrentUserInfo currentUserInfo, Location location) {
+        currentUserInfo.latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        User user = new User(currentUserInfo.name, currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude);
+        ref.child(currentUserInfo.name).setValue(user);
+    }
+
+    public void setUser(User user) {
+        ref.child(currentUserInfo.name).setValue(user);   // !!!!! 記得要設定乘 ref 的 user name 的... 要多一個 index
     }
 
     @Override

@@ -6,8 +6,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
 
-
-
 <!--<AutoCompleteTextView-->
     <!--android:id="@+id/autoCompleteTextView1"-->
     <!--android:layout_width="wrap_content"-->
@@ -31,8 +29,8 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="show"
-        android:id="@+id/buttonShow"
+        android:text="Sent!"
+        android:id="@+id/buttonSend"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
@@ -44,9 +42,9 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_alignBottom="@+id/buttonShow"
-        android:layout_alignRight="@+id/buttonShow"
-        android:layout_alignEnd="@+id/buttonShow"
+        android:layout_alignBottom="@+id/buttonSend"
+        android:layout_alignRight="@+id/buttonSend"
+        android:layout_alignEnd="@+id/buttonSend"
         xmlns:android="http://schemas.android.com/apk/res/android" />
 
     <CheckBox
@@ -64,7 +62,7 @@
         android:layout_height="wrap_content"
         android:text="Latitude"
         android:id="@+id/textViewLatitude"
-        android:layout_below="@+id/buttonShow"
+        android:layout_below="@+id/buttonSend"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />
 

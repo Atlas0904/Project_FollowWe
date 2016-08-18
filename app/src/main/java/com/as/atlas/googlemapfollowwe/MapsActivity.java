@@ -1,39 +1,31 @@
 package com.as.atlas.googlemapfollowwe;
 
 import android.Manifest;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Address;
+import android.graphics.Color;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
-import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
-import android.text.InputType;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
@@ -52,18 +44,15 @@ import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.IndoorBuilding;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
+import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.io.IOException;
-import java.util.List;
 import java.util.Locale;
 
 import static android.widget.Toast.LENGTH_LONG;
@@ -86,7 +75,7 @@ public class MapsActivity extends AppCompatActivity
     public final String URL_FIREBASE = "https://followwe-7f0e8.firebaseio.com/";
 
 
-    private Button buttonShow;
+    private Button buttonSend;
     private TextView textViewLatitude;
     private TextView textViewLongtitude;
     private TextView textViewClickedLatLng;
@@ -123,13 +112,14 @@ public class MapsActivity extends AppCompatActivity
     private MapPlaceSelectionListener mapPlaceSelectionListener;
     private UserInfoValueEventListener userInfoValueEventListener;
     private UserOnlineChangeValueEventListener userOnlineChangeValueEventListener;
+    private DestinationValueEventListener destinationValueEventListener;
 
     private GoogleMapEventHandler googleMapEventHandler;
     private OnMapReadyCallback onMapReadyCallback;
 
 
     // Current User Info
-    private CurrentUserInfo currentUserInfo;
+    private static CurrentUserInfo currentUserInfo;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -153,6 +143,12 @@ public class MapsActivity extends AppCompatActivity
         Log.d(TAG, "onOptionsItemSelected: id=" +id);
 
         switch (id){
+            case android.R.id.home:
+                Log.d(TAG, "onOptionsItemSelected: back to home");
+//                Intent intent = new Intent(this, LoginActivity.class);
+//                startActivity(intent);
+                finish();
+                break;
             case R.id.menu_save_points:
                 Log.d(TAG, "onOptionsItemSelected: menu_save_points");
                 mapPlaceSelectionListener.saveMarkerToSharePref();
@@ -176,6 +172,7 @@ public class MapsActivity extends AppCompatActivity
 
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
         getSupportActionBar().setCustomView(R.layout.abs_layout);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -191,7 +188,14 @@ public class MapsActivity extends AppCompatActivity
             }
         });
 
-        buttonShow = (Button) findViewById(R.id.buttonShow);
+        buttonSend = (Button) findViewById(R.id.buttonSend);
+        buttonSend.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                sendDestionationToServer(currentUserInfo.destination);
+            }
+        });
+
         textViewLatitude = (TextView) findViewById(R.id.textViewLatitude);
         textViewLongtitude = (TextView) findViewById(R.id.textViewLongitude);
         textViewClickedLatLng = (TextView) findViewById(R.id.textViewClickedLatLng);
@@ -229,6 +233,13 @@ public class MapsActivity extends AppCompatActivity
 
     }
 
+    private void sendDestionationToServer(com.as.atlas.googlemapfollowwe.Place place) {
+        Log.d(TAG, "sendDestionationToServer: place=" + place);
+        if (place.lat != 0.0 || place.lng != 0.0) {
+            destinationValueEventListener.setPlace(place);
+        }
+    }
+
     private void createUser() {
         String name = getIntent().getStringExtra(CurrentUserInfo.NAME);
         currentUserInfo = (name != null) ? new CurrentUserInfo(name) : null;
@@ -236,6 +247,10 @@ public class MapsActivity extends AppCompatActivity
 
         // Put user to user
         if (currentUserInfo != null) updateUserToFirebase(currentUserInfo);
+    }
+
+    public static CurrentUserInfo getCurrentUserInfo() {
+        return currentUserInfo;
     }
 
     private void updateUserToFirebase(CurrentUserInfo currentUserInfo) {
@@ -246,8 +261,12 @@ public class MapsActivity extends AppCompatActivity
         User user = new User(currentUserInfo.name, currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude);
 
         mFirebaseRoomInfo = mFirebase.child(NodeDefineOnFirebase.NODE_ROOM_NO);
-        mFirebaseRoomInfo.child(String.valueOf(currentUserInfo.roomNo)).child(currentUserInfo.name).setValue(user);
+
+
         userOnlineChangeValueEventListener = new UserOnlineChangeValueEventListener(mFirebase, currentUserInfo);  // set root
+        userOnlineChangeValueEventListener.setUser(user);
+
+        destinationValueEventListener = new DestinationValueEventListener(mFirebase, currentUserInfo);
 
 
         mFirebaseUser = mFirebase.child(NodeDefineOnFirebase.NODE_PRESENCE).child(currentUserInfo.name);  // Used to info on-line
@@ -532,17 +551,19 @@ public class MapsActivity extends AppCompatActivity
         textViewLatitude.setText(String.valueOf(location.getLatitude()));
         textViewLongtitude.setText(String.valueOf(location.getLongitude()));
 
-        updateCurrentUserLocation(location);
+        LatLng fromLoc = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        LatLng toLoc = new LatLng(location.getLatitude(), location.getLongitude());
+
+        Polyline line = googleMap.addPolyline(new PolylineOptions()
+                .add(fromLoc, toLoc)
+                .width(30)
+                .color(Color.RED));
+
+        userOnlineChangeValueEventListener.updateCurrentUserLocation(currentUserInfo, location);
 
         if (mLockedOnUserView) {
             GoogleMapEventHandler.moveCamera(currentUserInfo.latLng, 16);
         }
-    }
-
-    private void updateCurrentUserLocation(Location location) {
-        currentUserInfo.latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        User user = new User(currentUserInfo.name, currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude);
-        mFirebaseRoomInfo.child(String.valueOf(currentUserInfo.roomNo)).child(currentUserInfo.name).setValue(user);
     }
 
     @Override
@@ -579,6 +600,12 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onMapClick(final LatLng latLng) {
         Log.d(TAG, "onMapClick latLng:" + latLng);
+        float zoom = googleMap.getCameraPosition().zoom;
+        Log.d(TAG, "addMarkerToList: latLng=" + latLng + " zoom=" + zoom);
+        if (zoom < 16) {
+            Toast.makeText(this, "Zoom in before add marker!", Toast.LENGTH_SHORT).show();
+            return;
+        }
         textViewClickedLatLng.setText(latLng.toString());
 
         final Geocoder geocoder = new Geocoder(this, Locale.getDefault());

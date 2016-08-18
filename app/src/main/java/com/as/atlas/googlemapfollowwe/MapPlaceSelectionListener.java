@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
@@ -104,7 +105,7 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
             }
 
             String address = "(No mapping address)";
-            address = (addresses != null && addresses.get(0) != null) ? addresses.get(0).getAddressLine(0) : address;
+            address = (addresses != null && addresses.size() != 0 && addresses.get(0) != null) ? addresses.get(0).getAddressLine(0) : address;
             Log.d(TAG, "SearchAddressThread: addresses= " + addresses + " address= " + address + " latLng=" + latLng);
 
             Message msg = MapPlaceSelectionListener.this.obtainMessage(EVENT_RETURN_SEARCH_ADDRESS_RESULT);
@@ -136,6 +137,9 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
                 // add Marker on map
                 GoogleMapEventHandler.addMarker(latLng, suggestedPlace, BitmapDescriptorFactory.HUE_YELLOW);
                 GoogleMapEventHandler.moveCamera(latLng, 16);
+                com.as.atlas.googlemapfollowwe.Place place = new com.as.atlas.googlemapfollowwe.Place(latLng.latitude, latLng.longitude, suggestedPlace);
+                MapsActivity.getCurrentUserInfo().destination = place;
+                break;
             }
             case EVENT_RETURN_SEARCH_ADDRESS_RESULT: {
 

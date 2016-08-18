@@ -11,7 +11,8 @@ public class User {
     public double lat;
     public double lng;
 
-    public static final LatLng LATLNG_USER_DEFAULT = new LatLng(25.055408, 121.554099);
+    public static final double DEFAULT_LAT = 25.055408;
+    public static final double DEFAULT_LNG = 121.554099;
 
     ArriveMethod arriveMethod;
 
@@ -26,8 +27,8 @@ public class User {
 
     public User(String name) {
         this.name = name;
-        this.lat = LATLNG_USER_DEFAULT.latitude;
-        this.lng = LATLNG_USER_DEFAULT.longitude;
+        this.lat = DEFAULT_LAT;
+        this.lng = DEFAULT_LNG;
     }
 
     public User(String name, double lat, double lng) {

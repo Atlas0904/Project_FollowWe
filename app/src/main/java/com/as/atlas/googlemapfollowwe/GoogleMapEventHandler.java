@@ -28,6 +28,10 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
         this.googleMap = googleMap;
     }
 
+    public static GoogleMap getGoogleMapInstance() {
+        return googleMap;
+    }
+
     public void showOnlineUserOnMap(String name, double lat, double lng) {
         /*
          * Ref: http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=A|FF0000|000000  // Will show A on above example

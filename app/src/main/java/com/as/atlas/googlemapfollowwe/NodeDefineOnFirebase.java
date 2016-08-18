@@ -7,4 +7,6 @@ public class NodeDefineOnFirebase {
     public final static String NODE_USER_ID = "UserId";
     public final static String NODE_ROOM_NO = "RoomNo";
     public final static String NODE_PRESENCE = "presence";
+    public final static String NODE_USER = "user";
+    public final static String NODE_DESTINATION = "destination";
 }

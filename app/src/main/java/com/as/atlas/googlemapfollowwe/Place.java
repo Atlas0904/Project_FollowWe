@@ -19,9 +19,8 @@ public class Place {
     }
 
     public Place(double lat, double lng, String address) {
-
         this.lat = lat;
-        this.lat = lng;
+        this.lng = lng;
         this.address = address;
     }
 

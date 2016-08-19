@@ -266,7 +266,7 @@ public class MapsActivity extends AppCompatActivity
         userOnlineChangeValueEventListener = new UserOnlineChangeValueEventListener(mFirebase, currentUserInfo);  // set root
         userOnlineChangeValueEventListener.setUser(user);
 
-        destinationValueEventListener = new DestinationValueEventListener(mFirebase, currentUserInfo);
+        destinationValueEventListener = new DestinationValueEventListener(this, mFirebase, currentUserInfo);
 
 
         mFirebaseUser = mFirebase.child(NodeDefineOnFirebase.NODE_PRESENCE).child(currentUserInfo.name);  // Used to info on-line
@@ -551,7 +551,7 @@ public class MapsActivity extends AppCompatActivity
         textViewLatitude.setText(String.valueOf(location.getLatitude()));
         textViewLongtitude.setText(String.valueOf(location.getLongitude()));
 
-        LatLng fromLoc = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        LatLng fromLoc = new LatLng(currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude);
         LatLng toLoc = new LatLng(location.getLatitude(), location.getLongitude());
 
         Polyline line = googleMap.addPolyline(new PolylineOptions()

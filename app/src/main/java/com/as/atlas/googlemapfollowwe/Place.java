@@ -9,9 +9,10 @@ public class Place {
 
     public double lat;
     public double lng;
-    String address;
-    float placeId;
-
+    public String address;
+    public float placeId;
+    public int duration;
+    public int distance;
 
     //Introducing the dummy constructor
     public Place() {
@@ -26,6 +27,6 @@ public class Place {
 
     @Override
     public String toString() {
-        return "[Place] lat=" + lat + " lng=" + lng  + " address=" + address + " placeId:" + placeId;
+        return "[Place] lat=" + lat + " lng=" + lng  + " address=" + address + " placeId:" + placeId + " duration:" + duration + " distance=" + distance;
     }
 }

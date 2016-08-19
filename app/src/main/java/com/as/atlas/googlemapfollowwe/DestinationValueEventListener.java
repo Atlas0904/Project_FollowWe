@@ -1,12 +1,19 @@
 package com.as.atlas.googlemapfollowwe;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.firebase.client.ChildEventListener;
@@ -29,6 +36,7 @@ public class DestinationValueEventListener implements ValueEventListener, ChildE
     private Context context;
     private Firebase root;
     private Firebase ref;
+    private Place currentPlace;
 
 
     public DestinationValueEventListener(Context context, Firebase root, CurrentUserInfo currentUserInfo) {
@@ -40,21 +48,23 @@ public class DestinationValueEventListener implements ValueEventListener, ChildE
         ref.addChildEventListener(this);
     }
 
+    public Place getPlace() { return  currentPlace; }
+
     public void setPlace(Place destination) {
         Log.d(TAG, "DestinationValueEventListener: ref" + ref);
-        ref.child(destination.address).setValue(destination);   // !!!!! 記得要設定乘 ref 的 user name 的... 要多一個 index
+        ref.child(NodeDefineOnFirebase.NODE_DESTINATION).setValue(destination);   // !!!!! 記得要設定乘 ref 的 user name 的... 要多一個 index
     }
 
     @Override
     public void onDataChange(DataSnapshot dataSnapshot) {
         Log.d(TAG, "onDataChange: dataSnap=" + dataSnapshot);
         for (DataSnapshot child: dataSnapshot.getChildren()) {
-            final Place place = child.getValue(Place.class);
-            Log.d(TAG, "onDataChange: place= " + place);
+            currentPlace = child.getValue(Place.class);
+            Log.d(TAG, "onDataChange: currentPlace= " + currentPlace);
 
-            final LatLng latLng = new LatLng(place.lat, place.lat);
+            changeIconAndTextUI(currentPlace);
 
-            // accept?
+//            // accept?
 //            LayoutInflater layoutInflater = LayoutInflater.from(context);
 //            final View view = layoutInflater.inflate(R.layout.dialog_input_message, null);
 //
@@ -78,6 +88,21 @@ public class DestinationValueEventListener implements ValueEventListener, ChildE
 //                    .setIcon(android.R.drawable.ic_dialog_alert)
 //                    .show();
 
+        }
+    }
+
+    private void changeIconAndTextUI(Place place) {
+        final LatLng latLng = new LatLng(place.lat, place.lat);
+        FloatingActionButton fab = (FloatingActionButton) ((Activity)context).findViewById(R.id.fab);
+        fab.setBackgroundTintList(ContextCompat.getColorStateList(context, R.color.yellow));
+
+        TextView textViewDestination = (TextView) ((Activity) context).findViewById(R.id.textViewDestination);
+
+        if (!"".equals(place.address)) {
+            textViewDestination.setText(place.address);
+            textViewDestination.setTypeface(null, Typeface.BOLD);
+            textViewDestination.setTextColor(Color.DKGRAY);
+            textViewDestination.setVisibility(View.VISIBLE);
         }
     }
 

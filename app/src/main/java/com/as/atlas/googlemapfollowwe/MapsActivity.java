@@ -14,6 +14,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -63,7 +64,7 @@ public class MapsActivity extends AppCompatActivity
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         OnMapReadyCallback,
-        LocationListener, GoogleMap.OnInfoWindowLongClickListener {
+        LocationListener, GoogleMap.OnInfoWindowLongClickListener{
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     private static final long LOCATION_REQUEST_INTERVAL_MS = 500;
@@ -80,6 +81,13 @@ public class MapsActivity extends AppCompatActivity
     private TextView textViewLongtitude;
     private TextView textViewClickedLatLng;
     public static TextView textViewAddress;  // May cause leak
+    private TextView textViewDestination;
+    private TextView textViewDuration;
+    private TextView textViewDistance;
+
+
+
+    public static final String FLOATING_ACTION_BUTTON_DESTINATION = "Dest";
 
     private CheckBox checkBox;
     private GoogleApiClient googleApiClient;
@@ -117,6 +125,8 @@ public class MapsActivity extends AppCompatActivity
     private GoogleMapEventHandler googleMapEventHandler;
     private OnMapReadyCallback onMapReadyCallback;
 
+    public com.as.atlas.googlemapfollowwe.Place globalPlace;
+
 
     // Current User Info
     private static CurrentUserInfo currentUserInfo;
@@ -125,7 +135,6 @@ public class MapsActivity extends AppCompatActivity
      * See https://g.co/AppIndexing/AndroidStudio for more information.
      */
     private GoogleApiClient client;
-
     // Note: remember to add package in Google console
     // https://console.developers.google.com/apis/credentials?project=at-shareyourlocation
 
@@ -200,16 +209,47 @@ public class MapsActivity extends AppCompatActivity
         textViewLongtitude = (TextView) findViewById(R.id.textViewLongitude);
         textViewClickedLatLng = (TextView) findViewById(R.id.textViewClickedLatLng);
         textViewAddress = (TextView) findViewById(R.id.textViewAddress);
+        textViewDestination = (TextView) findViewById(R.id.textViewDestination);
+        textViewDestination.setVisibility(View.GONE);
 
-        FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
+        textViewDuration = (TextView) findViewById(R.id.textViewDuration);
+        textViewDestination = (TextView) findViewById(R.id.textViewDestination);
+
+
+        final FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
+
+        fab.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.darkgreen));
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                GoogleMapEventHandler.moveCamera(currentUserInfo.latLng, 16);
-                Toast.makeText(MapsActivity.this, "Synced", Toast.LENGTH_SHORT).show();
+                TextView textView = (TextView) MapsActivity.this.findViewById(R.id.textViewDestination);
+                if ("".equals(textView.getText().toString()) || FLOATING_ACTION_BUTTON_DESTINATION.equals(textView.getText().toString())) {
+                    GoogleMapEventHandler.moveCamera(currentUserInfo.latLng, 16);
+                    Toast.makeText(MapsActivity.this, "Synced", Toast.LENGTH_SHORT).show();
+                } else {
+                    fab.setBackgroundTintList(ContextCompat.getColorStateList(MapsActivity.this, R.color.darkgreen));
+                    textView.setText(FLOATING_ACTION_BUTTON_DESTINATION);
+
+                    com.as.atlas.googlemapfollowwe.Place destination = destinationValueEventListener.getPlace();
+                    LatLng latLng = new LatLng(destination.lat, destination.lng);
+                    // add Marker on map
+                    GoogleMapEventHandler.addMarker(latLng, destination.address, BitmapDescriptorFactory.HUE_YELLOW);
+                    GoogleMapEventHandler.moveCamera(latLng, 16);
+                    Log.d(TAG, "fab.setOnClickListener: latLng=" + latLng);
+
+                }
             }
         });
 
+        fab.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                TextView textView = (TextView) MapsActivity.this.findViewById(R.id.textViewDestination);
+                fab.setBackgroundTintList(ContextCompat.getColorStateList(MapsActivity.this, R.color.darkgreen));
+                textView.setText(FLOATING_ACTION_BUTTON_DESTINATION);
+                return false;
+            }
+        });
 
         configGoogleApiClient();
         configLocationRequest();
@@ -615,6 +655,8 @@ public class MapsActivity extends AppCompatActivity
         new Thread(new Runnable() {
             @Override
             public void run() {
+                com.as.atlas.googlemapfollowwe.Place place = Utils.getDurationOfTravel("driving", currentUserInfo.latLng, latLng);
+
                 String placeId = Utils.getPlaceIdFromGoogleMapAPI(latLng, 500, "restaurant", "cruise");
                 if ("".equals(placeId)) {
                     return;

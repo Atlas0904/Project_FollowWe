@@ -31,6 +31,7 @@ public class Utils {
     private static final String ENCODE_UTF8 = "utf-8";
     private static final String PREFIX_GOOGLE_MAP_API_FOR_ADDRESS = "http://maps.google.com.tw/maps/api/geocode/json?address=";
     private static final String PREFIX_GOOGLE_MAP_API_FOR_PLACE_ID = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?";
+    private static final String PREFIX_GOOGLE_MAP_API_FOR_DURATION = "https://maps.googleapis.com/maps/api/distancematrix/json?";
     private static final String RESPONSE_STATUS = "status";
     private static final String RESPONSE_STATUS_OK = "OK";
     private static final String RESPONSE_RESULTS = "results";
@@ -82,6 +83,74 @@ public class Utils {
         }
 
         return "";
+    }
+
+    /*
+    Example:
+    https://maps.googleapis.com/maps/api/distancematrix/json?
+    units=metric
+    &mode=walking
+    &origins=館前東路26號
+    &destinations=新店中興路3段88號
+    &key=AIzaSyCv7_YK7RSB6x-2Ad5uJepXBocohE3YoWM
+
+    units=metric (default) returns distances in kilometers and meters.
+    units=imperial returns distances in miles and feet.
+    */
+    public static Place getDurationOfTravel(String mode, LatLng from, LatLng to) {
+        Place place = new Place();
+
+//        try {
+//            from = URLEncoder.encode(from, ENCODE_UTF8);
+//            to = URLEncoder.encode(to, ENCODE_UTF8);
+//        } catch (UnsupportedEncodingException e) {
+//            e.printStackTrace();
+//        }
+
+        String key = "AIzaSyD2VBdHH2ad0xfhnvEXDF62XxRm4s-KD58";
+        String url = PREFIX_GOOGLE_MAP_API_FOR_DURATION +
+                "units=metric&" +
+                "&mode=" + mode +
+                "&origins=" + from.latitude + "," + from.longitude +
+                "&destinations=" + to.latitude + "," + to.longitude +
+                "&key=" + key;
+        Log.d(TAG, "getDurationOfTravel: url=" + url);
+        byte[] bytes = Utils.urlToByte(url);
+        try {
+            JSONObject obj = new JSONObject(new String(bytes));
+            Log.d(TAG, "getDurationOfTravel: obj" + obj.toString());
+
+            if (obj.getString(RESPONSE_STATUS).equals(RESPONSE_STATUS_OK)) {
+                JSONObject duration = obj.getJSONArray("rows")
+                        .getJSONObject(0)
+                        .getJSONArray("elements")
+                        .getJSONObject(0)
+                        .getJSONObject("duration");
+
+                String durationString  = duration.getString("text");
+                int durationInt = duration.getInt("value");
+
+                JSONObject distance = obj.getJSONArray("rows")
+                        .getJSONObject(0)
+                        .getJSONArray("elements")
+                        .getJSONObject(0)
+                        .getJSONObject("distance");
+                String distanceString = distance.getString("text");
+                int distanceInt = distance.getInt("value");
+
+                place.duration = durationInt;
+                place.distance = distanceInt;
+
+            }
+
+        } catch (JSONException e) {
+            Log.d(TAG, "getDurationOfTravel Exception e:" + e);
+            e.printStackTrace();
+        }
+
+        Log.d(TAG, "getDurationOfTravel: place=" + place);
+        return place;
+
     }
 
     public static double[] getLatLngFromGoogleMapAPI(String addr) {

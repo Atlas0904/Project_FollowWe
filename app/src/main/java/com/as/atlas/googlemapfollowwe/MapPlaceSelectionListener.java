@@ -73,6 +73,7 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
     public class SearchLatLngThread implements Runnable {
         public void run() {
             double[] d = Utils.getLatLngFromGoogleMapAPI(suggestedPlace);
+            if (d == null) return;
             Log.d(TAG, "SearchLatLngThread d:" + d[0] + "/" + d[1]);
             Message msg = MapPlaceSelectionListener.this.obtainMessage(EVENT_ON_SUGGEST_PLACE_DONE);
             Bundle data = new Bundle();

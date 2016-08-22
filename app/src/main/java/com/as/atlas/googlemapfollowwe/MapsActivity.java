@@ -55,7 +55,6 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.Locale;
-
 import static android.widget.Toast.LENGTH_LONG;
 
 public class MapsActivity extends AppCompatActivity
@@ -69,6 +68,7 @@ public class MapsActivity extends AppCompatActivity
     private static final String TAG = MapsActivity.class.getSimpleName();
     private static final long LOCATION_REQUEST_INTERVAL_MS = 500;
     private static final long LOCATION_FAST_REQUEST_INTERVAL_MS = 250;
+    private static final float LEVEL_ZOOM_IN = 15.5f;
     private static boolean mLockedOnUserView = false;
     
 
@@ -213,7 +213,7 @@ public class MapsActivity extends AppCompatActivity
         textViewDestination.setVisibility(View.GONE);
 
         textViewDuration = (TextView) findViewById(R.id.textViewDuration);
-        textViewDestination = (TextView) findViewById(R.id.textViewDestination);
+        textViewDistance = (TextView) findViewById(R.id.textViewDistance);
 
 
         final FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
@@ -636,13 +636,16 @@ public class MapsActivity extends AppCompatActivity
         Log.d(TAG, s);
     }
 
+    private String secondsToString(int pTime) {
+        return String.format("%02d:%02d", pTime / 60, pTime % 60);
+    }
 
     @Override
     public void onMapClick(final LatLng latLng) {
         Log.d(TAG, "onMapClick latLng:" + latLng);
         float zoom = googleMap.getCameraPosition().zoom;
         Log.d(TAG, "addMarkerToList: latLng=" + latLng + " zoom=" + zoom);
-        if (zoom < 16) {
+        if (zoom < LEVEL_ZOOM_IN) {
             Toast.makeText(this, "Zoom in before add marker!", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -655,7 +658,16 @@ public class MapsActivity extends AppCompatActivity
         new Thread(new Runnable() {
             @Override
             public void run() {
-                com.as.atlas.googlemapfollowwe.Place place = Utils.getDurationOfTravel("driving", currentUserInfo.latLng, latLng);
+                final com.as.atlas.googlemapfollowwe.Place place = Utils.getDurationOfTravel("driving", currentUserInfo.latLng, latLng);
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        textViewDistance.setText(secondsToString(place.duration));
+                        textViewDuration.setText(Integer.valueOf(place.distance)+ "m");
+                    }
+                });
 
                 String placeId = Utils.getPlaceIdFromGoogleMapAPI(latLng, 500, "restaurant", "cruise");
                 if ("".equals(placeId)) {

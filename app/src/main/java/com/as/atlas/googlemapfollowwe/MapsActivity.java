@@ -60,7 +60,6 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.util.Locale;
 import java.util.Map;
 
->>>>>>> 927d9e5df266b99abc15caae5a3b8c62c842d24e
 import static android.widget.Toast.LENGTH_LONG;
 
 public class MapsActivity extends AppCompatActivity

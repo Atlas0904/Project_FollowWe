@@ -329,7 +329,9 @@ public class MapsActivity extends AppCompatActivity
 
     private void createUser() {
         String name = getIntent().getStringExtra(CurrentUserInfo.NAME);
-        currentUserInfo = (name != null) ? new CurrentUserInfo(name) : null;
+        int iconNo = getIntent().getIntExtra(CurrentUserInfo.ICON_NO, R.mipmap.ic_launcher);
+
+        currentUserInfo = (name != null) ? new CurrentUserInfo(name, iconNo) : null;
         Log.d(TAG, "onCreate: " + currentUserInfo);
 
         // Put user to user
@@ -345,7 +347,7 @@ public class MapsActivity extends AppCompatActivity
         Log.d(TAG, "updateUserToFirebase: currentUserInfo=" + currentUserInfo);
 
         // Assigned default value first. Wait for Google map ready and update currnet value
-        User user = new User(currentUserInfo.name, currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude);
+        User user = new User(currentUserInfo.name, currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude, currentUserInfo.iconNo);
 
         mFirebaseRoomInfo = mFirebase.child(NodeDefineOnFirebase.NODE_ROOM_NO);
 
@@ -402,9 +404,9 @@ public class MapsActivity extends AppCompatActivity
     }
 
     private void setPeople() {
-        User atlas = new User("Atlas", 25.033408, 121.564099);
-        User sandy = new User("Sandy", 25.043408, 121.564099);
-        User warhol = new User("Warhol", 25.043408, 121.574099);
+        User atlas = new User("Atlas", 25.033408, 121.564099, R.mipmap.icon_boy_0);
+        User sandy = new User("Sandy", 25.043408, 121.564099, R.mipmap.icon_boy_1);
+        User warhol = new User("Warhol", 25.043408, 121.574099, R.mipmap.icon_boy_2);
 
         mFirebaseUserInfo.push().setValue(atlas);    // 如果本身就是 class, 就不要再用  child("Person")
         mFirebaseUserInfo.push().setValue(sandy);
@@ -415,7 +417,7 @@ public class MapsActivity extends AppCompatActivity
     public void onMapReady(GoogleMap googleMap) {  // Note: init may wait for google map ready
         Log.d(TAG, "onMapReady: map=" + googleMap);
         this.googleMap = googleMap;
-        googleMapEventHandler = new GoogleMapEventHandler(googleMap);
+        googleMapEventHandler = new GoogleMapEventHandler(this, googleMap);
         mapPlaceSelectionListener.putMarkerListToMap();
         userInfoValueEventListener = new UserInfoValueEventListener(googleMapEventHandler);
         mFirebaseUserInfo.addValueEventListener(userInfoValueEventListener);
@@ -653,31 +655,31 @@ public class MapsActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        Log.d(TAG, "onActivityResult: requestCode=" + requestCode + " resultCode=" + resultCode);
-        if (requestCode == RequestCode.REQUEST_CODE_LOGIN_ACTIVITY) {
-            if (resultCode == RESULT_OK) {
-                String name = data.getStringExtra(CurrentUserInfo.NAME);
-                currentUserInfo = (name != null) ? new CurrentUserInfo(name) : null;
-                Log.d(TAG, "onActivityResult: " + currentUserInfo);
-            }
-
-        } else if (requestCode == RequestCode.REQUEST_CODE_PLACE_AUTOCOMPLETE_ACTIVITY) {
-            if (resultCode == RESULT_OK) {
-                Place place = PlaceAutocomplete.getPlace(this, data);
-                Log.i(TAG, "Place: " + place.getName());   // fragment return
-            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
-                Status status = PlaceAutocomplete.getStatus(this, data);
-                // TODO: Handle the error.
-                Log.i(TAG, status.getStatusMessage());
-
-            } else if (resultCode == RESULT_CANCELED) {
-                // The user canceled the operation.
-            }
-        }
-    }
+//    @Override
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//        super.onActivityResult(requestCode, resultCode, data);
+//        Log.d(TAG, "onActivityResult: requestCode=" + requestCode + " resultCode=" + resultCode);
+//        if (requestCode == RequestCode.REQUEST_CODE_LOGIN_ACTIVITY) {
+//            if (resultCode == RESULT_OK) {
+//                String name = data.getStringExtra(CurrentUserInfo.NAME);
+//                currentUserInfo = (name != null) ? new CurrentUserInfo(name) : null;
+//                Log.d(TAG, "onActivityResult: " + currentUserInfo);
+//            }
+//
+//        } else if (requestCode == RequestCode.REQUEST_CODE_PLACE_AUTOCOMPLETE_ACTIVITY) {
+//            if (resultCode == RESULT_OK) {
+//                Place place = PlaceAutocomplete.getPlace(this, data);
+//                Log.i(TAG, "Place: " + place.getName());   // fragment return
+//            } else if (resultCode == PlaceAutocomplete.RESULT_ERROR) {
+//                Status status = PlaceAutocomplete.getStatus(this, data);
+//                // TODO: Handle the error.
+//                Log.i(TAG, status.getStatusMessage());
+//
+//            } else if (resultCode == RESULT_CANCELED) {
+//                // The user canceled the operation.
+//            }
+//        }
+//    }
 
     private void log(String s) {
         Log.d(TAG, s);

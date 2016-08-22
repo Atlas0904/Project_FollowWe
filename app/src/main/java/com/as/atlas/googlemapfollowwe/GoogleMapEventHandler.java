@@ -1,6 +1,8 @@
 package com.as.atlas.googlemapfollowwe;
 
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.util.Log;
 
@@ -18,13 +20,15 @@ import com.google.android.gms.maps.model.MarkerOptions;
  */
 public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTask.FetchUserBitmapResponse{
     public final static String TAG =GoogleMapEventHandler.class.getSimpleName();
+    private static Context context;
     private static GoogleMap googleMap;
 
     private static final int LETTER_ON_ICON = 1;
     private static final int ICON_SIZE = 128;
 
-    public GoogleMapEventHandler(GoogleMap googleMap) {
+    public GoogleMapEventHandler(Context context, GoogleMap googleMap) {
         Log.d(TAG, "GoogleMapEventHandler ctr: googleMap=" + googleMap);
+        this.context = context;
         this.googleMap = googleMap;
     }
 
@@ -104,6 +108,20 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
                 .title(title)
                 .snippet(snippet)
                 .icon(BitmapDescriptorFactory.defaultMarker(color));
+        return addMarker(markerOptions);
+    }
+
+    public static Marker addMarker(LatLng latLng, String title, String snippet, int iconNo) {
+        Log.d(TAG, "addMark: latLng=" +latLng + " title=" + title + " snippet=" + snippet + " iconNo=" + iconNo);
+        Bitmap iconBitmap = BitmapFactory.decodeResource(context.getResources(), iconNo);
+
+        Bitmap icon = Bitmap.createScaledBitmap(iconBitmap, 256, 256, false);
+
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(latLng)
+                .title(title)
+                .snippet(snippet)
+                .icon(BitmapDescriptorFactory.fromBitmap(icon));
         return addMarker(markerOptions);
     }
 

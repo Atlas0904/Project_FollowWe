@@ -133,7 +133,7 @@
         android:layout_height="wrap_content"
         android:text="distance"
         android:id="@+id/textViewDistance"
-        android:layout_below="@+id/textViewDuration"
+        android:layout_alignTop="@+id/textViewLongitude"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
     <!--android:src="@mipmap/icon_google_map_follow_we" />-->

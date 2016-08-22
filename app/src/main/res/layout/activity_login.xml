@@ -69,4 +69,14 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true" />
 
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="B"
+        android:id="@+id/buttonIconSelect"
+        android:layout_alignBottom="@+id/editTextName"
+        android:layout_toRightOf="@+id/editTextName"
+        android:layout_toEndOf="@+id/editTextName" />
+
 </RelativeLayout>

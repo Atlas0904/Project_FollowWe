@@ -11,5 +11,6 @@
     <string name="title_current_location">目前位置</string>
     <string name="message_current_location">是否儲存目前位置?</string>
     <string name="google_play_service_missing">裝置沒有安裝Google Play服務</string>
+    <string name="icon_source">All icon contributed  by flaticon.com Under CC: Freepik. Designed by Freepik and distributed by Flaticon</string>
 
 </resources>

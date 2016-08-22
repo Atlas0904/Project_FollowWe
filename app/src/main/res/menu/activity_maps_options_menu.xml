@@ -6,5 +6,6 @@
         android:title="Clear Points" />
     <item android:id="@+id/menu_sync_to_cloud"
         android:title="Sync to Cloud" />
-
+    <item android:id="@+id/menu_show_info"
+        android:title="Information" />
 </menu>

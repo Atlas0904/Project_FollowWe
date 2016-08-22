@@ -17,6 +17,7 @@ public class LoginActivity extends AppCompatActivity {
     private EditText editTextRoomNo;
 
     private Button buttonLogin;
+    private Button buttonIconSelect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +37,16 @@ public class LoginActivity extends AppCompatActivity {
                 intent.putExtra(CurrentUserInfo.NAME, editTextName.getText().toString());
                 startActivity(intent);
                 Log.d(TAG, "startActivityForResult: name=" + editTextName.getText().toString());
+            }
+        });
+
+        buttonIconSelect = (Button) findViewById(R.id.buttonIconSelect);
+        buttonIconSelect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(LoginActivity.this, LoginIconSelectActivity.class);
+                startActivity(intent);
+                Log.d(TAG, "startActivityForResult: onClick=" + LoginIconSelectActivity.class.getSimpleName());
             }
         });
     }

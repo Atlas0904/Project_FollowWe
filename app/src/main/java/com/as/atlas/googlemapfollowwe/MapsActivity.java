@@ -10,12 +10,14 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -31,6 +33,7 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.firebase.client.core.Context;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.ConnectionResult;
@@ -55,6 +58,9 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.Locale;
+import java.util.Map;
+
+>>>>>>> 927d9e5df266b99abc15caae5a3b8c62c842d24e
 import static android.widget.Toast.LENGTH_LONG;
 
 public class MapsActivity extends AppCompatActivity
@@ -63,7 +69,7 @@ public class MapsActivity extends AppCompatActivity
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         OnMapReadyCallback,
-        LocationListener, GoogleMap.OnInfoWindowLongClickListener{
+        LocationListener, GoogleMap.OnInfoWindowLongClickListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     private static final long LOCATION_REQUEST_INTERVAL_MS = 500;
@@ -82,8 +88,8 @@ public class MapsActivity extends AppCompatActivity
     private TextView textViewClickedLatLng;
     public static TextView textViewAddress;  // May cause leak
     private TextView textViewDestination;
-    private TextView textViewDuration;
-    private TextView textViewDistance;
+    public TextView textViewDuration;
+    public TextView textViewDistance;
 
 
 
@@ -113,7 +119,35 @@ public class MapsActivity extends AppCompatActivity
     private ValueEventListener mOnlineChangeListener;
 
     //Local variable
-    private Handler mHandler;
+    public class UIHandler extends Handler {
+        public final static int EVENT_UI_UPDATE_DURATION = 1;
+        public final static int EVENT_UI_UPDATE_DISTANCE = 2;
+        private MapsActivity mapsActivity;
+
+        public UIHandler(MapsActivity mapsActivity) {
+            this.mapsActivity = mapsActivity;
+        }
+
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.d(TAG, "UIHandler: msg.what=" + msg.what);
+            switch (msg.what) {
+                case EVENT_UI_UPDATE_DISTANCE:
+                    TextView textView = (TextView) mapsActivity.findViewById(R.id.textViewDistance);
+                    textView.setText((int)msg.arg1);
+                    break;
+                case EVENT_UI_UPDATE_DURATION:
+                    TextView textView1 = (TextView) mapsActivity.findViewById(R.id.textViewDuration);
+                    textView1.setText((int)msg.arg1);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+    protected UIHandler mUIHandler;
+
     public final static int EVENT_RETURN_SEARCH_ADDRESS_RESULT = 1;
 
 
@@ -168,10 +202,25 @@ public class MapsActivity extends AppCompatActivity
                 break;
             case R.id.menu_sync_to_cloud:
                 break;
+            case R.id.menu_show_info:
+                showInfo();
+                break;
             default:
                 return false;
         }
         return true;
+    }
+
+    private void showInfo() {
+        Log.d(TAG, "showInfo");
+        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this);
+        alertDialogBuilder.setTitle("Icon contributed & Thanks to");
+        alertDialogBuilder.setMessage(R.string.icon_source).setCancelable(false);
+
+        AlertDialog alertDialog = alertDialogBuilder.create();
+        alertDialog.setCanceledOnTouchOutside(true);
+        alertDialog.show();
+
     }
 
     @Override
@@ -269,8 +318,7 @@ public class MapsActivity extends AppCompatActivity
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
-
-
+        mUIHandler = new UIHandler(MapsActivity.this);
     }
 
     private void sendDestionationToServer(com.as.atlas.googlemapfollowwe.Place place) {
@@ -668,6 +716,14 @@ public class MapsActivity extends AppCompatActivity
                         textViewDuration.setText(Integer.valueOf(place.distance)+ "m");
                     }
                 });
+
+//                Message msgDuration = mUIHandler.obtainMessage(mUIHandler.EVENT_UI_UPDATE_DURATION);
+//                msgDuration.arg1 = place.duration;
+//                mUIHandler.sendMessage(msgDuration);
+//
+//                Message msgDist = mUIHandler.obtainMessage(mUIHandler.EVENT_UI_UPDATE_DISTANCE);
+//                msgDist.arg1 = place.duration;
+//                mUIHandler.sendMessage(msgDist);
 
                 String placeId = Utils.getPlaceIdFromGoogleMapAPI(latLng, 500, "restaurant", "cruise");
                 if ("".equals(placeId)) {

@@ -38,6 +38,7 @@ public class UserOnlineChangeValueEventListener implements ValueEventListener, C
         ref = this.root.child(NodeDefineOnFirebase.NODE_ROOM_NO).child(String.valueOf(currentUserInfo.roomNo)).child(NodeDefineOnFirebase.NODE_USER);
         ref.addValueEventListener(this);
         ref.addChildEventListener(this);
+        ref.child(currentUserInfo.name).onDisconnect().removeValue();
         users = new HashMap<String, UserMisc>();
     }
 
@@ -80,10 +81,10 @@ public class UserOnlineChangeValueEventListener implements ValueEventListener, C
     private UserMisc createUserMisc(User user) {
 
         LatLng latLng = new LatLng(user.getLat(), user.getLng());
-        BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.mipmap.icon_user_girl);
-        Marker marker = GoogleMapEventHandler.addMarker(latLng, user.name, latLng.toString(), icon);
+//        BitmapDescriptor icon = BitmapDescriptorFactory.fromResource(R.mipmap.icon_user_girl);
+        Marker marker = GoogleMapEventHandler.addMarker(latLng, user.name, latLng.toString(), user.iconNo);
 
-        UserMisc userMisc = new UserMisc(user, marker ,false);   //先畫了不要重劃
+        UserMisc userMisc = new UserMisc(user, marker ,false);   //先畫了不要重劃, 畫完再把他存起來
         return userMisc;
     }
 
@@ -97,14 +98,21 @@ public class UserOnlineChangeValueEventListener implements ValueEventListener, C
             Log.d(TAG, "updateUsersIcon: userMisc=" + userMisc);
 
             if (userMisc.changed) {
-                // Remove old icon
-                userMisc.marker.remove();
 
-                // Add new icon
+//                // Remove old icon
+//                userMisc.marker.remove();
+//
+//                // Add new icon
+//                User user= userMisc.user;
+//                LatLng latLng = new LatLng(user.getLat(), user.getLng());
+//                Marker marker = GoogleMapEventHandler.addMarker(latLng, user.name, latLng.toString(), user.iconNo);
+//                userMisc.marker = marker;
+
+
+                // Change position directly
                 User user= userMisc.user;
                 LatLng latLng = new LatLng(user.getLat(), user.getLng());
-                Marker marker = GoogleMapEventHandler.addMarker(latLng, user.name, latLng.toString(), user.iconNo);
-                userMisc.marker = marker;
+                userMisc.marker.setPosition(latLng);
             }
         }
 

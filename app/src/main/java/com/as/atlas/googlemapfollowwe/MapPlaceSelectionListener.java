@@ -184,6 +184,8 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
         }
     }
 
+
+
     public void addMarkerToList(LatLng latLng, String title, String addr, float icon) {
         addUserMarkerToList(latLng, title, addr, BitmapDescriptorFactory.HUE_RED);
         addGooleMarkersToList(latLng, title, addr, BitmapDescriptorFactory.HUE_RED);

@@ -29,6 +29,11 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.directions.route.AbstractRouting;
+import com.directions.route.Route;
+import com.directions.route.RouteException;
+import com.directions.route.Routing;
+import com.directions.route.RoutingListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
@@ -70,12 +75,14 @@ public class MapsActivity extends AppCompatActivity
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         OnMapReadyCallback,
-        LocationListener, GoogleMap.OnInfoWindowLongClickListener {
+        LocationListener, GoogleMap.OnInfoWindowLongClickListener, RoutingListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     private static final long LOCATION_REQUEST_INTERVAL_MS = 500;
     private static final long LOCATION_FAST_REQUEST_INTERVAL_MS = 250;
     private static final float LEVEL_ZOOM_IN = 15.5f;
+    private static final String EXTRA_LATS = "extra_lats";
+    private static final String EXTRA_LNGS = "extra_lngs";
     private static boolean mLockedOnUserView = false;
     
 
@@ -118,6 +125,45 @@ public class MapsActivity extends AppCompatActivity
     private Firebase mFirebaseUserInfo;
 
     private ValueEventListener mOnlineChangeListener;
+    private ArrayList<Polyline> polylines;
+
+    @Override
+    public void onRoutingFailure(RouteException e) {
+
+    }
+
+    @Override
+    public void onRoutingStart() {
+
+    }
+
+    @Override
+    public void onRoutingSuccess(ArrayList<Route> routes, int shortestPathIndex) {
+
+        // Reset first
+        if (polylines != null) {
+            for (Polyline poly : polylines) {
+                poly.remove();
+            }
+        }
+
+        polylines = new ArrayList<>();
+        for (int i = 0; i < routes.size(); i++) {
+            //In case of more than 5 alternative routes
+            PolylineOptions polyOptions = new PolylineOptions();
+            polyOptions.color(Color.YELLOW);
+            polyOptions.width(40);
+            polyOptions.addAll(routes.get(i).getPoints());
+            Polyline polyline = googleMap.addPolyline(polyOptions);
+            polylines.add(polyline);
+        }
+    }
+
+
+    @Override
+    public void onRoutingCancelled() {
+
+    }
 
     //Local variable
     public class UIHandler extends Handler {
@@ -228,6 +274,19 @@ public class MapsActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
+        if (null != savedInstanceState) {
+            double[] lats = savedInstanceState.getDoubleArray(EXTRA_LATS);
+            double[] lngs = savedInstanceState.getDoubleArray(EXTRA_LNGS);
+            if (lats != null && lngs != null) {
+                for (int i = 0; i < lats.length; i++) {
+                    if (userRoute == null) userRoute = new ArrayList<LatLng>();
+                    userRoute.add(new LatLng(lats[i], lngs[i]));
+                }
+            }
+        }
+
         setContentView(R.layout.activity_maps);
 
         getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
@@ -288,6 +347,7 @@ public class MapsActivity extends AppCompatActivity
                     GoogleMapEventHandler.moveCamera(latLng, 16);
                     Log.d(TAG, "fab.setOnClickListener: latLng=" + latLng);
 
+                    navigateToDestination(AbstractRouting.TravelMode.DRIVING, currentUserInfo.latLng, latLng);
                 }
             }
         });
@@ -301,6 +361,9 @@ public class MapsActivity extends AppCompatActivity
                 return false;
             }
         });
+
+
+
 
         configGoogleApiClient();
         configLocationRequest();
@@ -321,6 +384,17 @@ public class MapsActivity extends AppCompatActivity
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
         mUIHandler = new UIHandler(MapsActivity.this);
+    }
+
+    private void navigateToDestination(AbstractRouting.TravelMode method, LatLng start, LatLng end) {
+        Routing routing = new Routing.Builder()
+                //.travelMode(AbstractRouting.TravelMode.WALKING)   // 指定路徑
+                .travelMode(AbstractRouting.TravelMode.DRIVING)
+                .waypoints(start, end)   // 起點終點
+                .withListener(this)
+                .build();
+
+        routing.execute();
     }
 
     private void sendDestionationToServer(com.as.atlas.googlemapfollowwe.Place place) {
@@ -454,7 +528,7 @@ public class MapsActivity extends AppCompatActivity
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 boolean connected = (Boolean) dataSnapshot.getValue();
-                log("mOnlineChangeListener: connected" + connected);
+                log("mOnlineChangeListener: connected=" + connected);
                 if (connected) {
                     mFirebaseUser.onDisconnect().removeValue();
                     mFirebaseUser.setValue(true);
@@ -515,6 +589,16 @@ public class MapsActivity extends AppCompatActivity
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+
+        double[] lats = new double[userRoute.size()];
+        double[] lngs = new double[userRoute.size()];
+        for (int i = 0; i < userRoute.size(); i++) {
+            lats[i] = userRoute.get(i).latitude;
+            lngs[i] = userRoute.get(i).longitude;
+        }
+        outState.putDoubleArray(EXTRA_LATS, lats);
+        outState.putDoubleArray(EXTRA_LNGS, lngs);
+
         mapPlaceSelectionListener.saveMarkerToSharePref();
     }
 
@@ -566,36 +650,6 @@ public class MapsActivity extends AppCompatActivity
             return;
         }
 
-//        googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
-//            @Override
-//            public boolean onMarkerClick(Marker marker) {
-//
-//                Toast.makeText(MapsActivity.this, "On marker click", LENGTH_LONG).show();
-//
-//                // Save current place
-//                AlertDialog.Builder alertDialog = new AlertDialog.Builder(MapsActivity.this);
-//
-//                alertDialog.setTitle(R.string.title_current_location)
-//                        .setMessage(R.string.message_current_location)
-//                        .setCancelable(true);
-//
-//                alertDialog.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        Intent result = new Intent();
-//                        result.putExtra("lat", currentLocation.getLatitude());
-//                        result.putExtra("lng", currentLocation.getLongitude());
-//                        setResult(Activity.RESULT_OK, result);
-//                        finish();
-//                    }
-//                });
-//                alertDialog.setNegativeButton(android.R.string.cancel, null);
-//                alertDialog.show();
-//
-//                return true;
-//            }
-//        });
-
         googleMap.setMyLocationEnabled(true);
         createLocationRequest();
         LocationServices.FusedLocationApi.requestLocationUpdates(
@@ -605,8 +659,9 @@ public class MapsActivity extends AppCompatActivity
         currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
         if (currentLocation != null) {
             LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());   // 有可能 Geany 一開始給錯  導致沒有路線圖
-            GoogleMapEventHandler.addMarker(latLng, latLng.toString(), BitmapDescriptorFactory.HUE_VIOLET);
-            GoogleMapEventHandler.moveCamera(latLng, 16);
+//            GoogleMapEventHandler.addMarker(latLng, latLng.toString(), BitmapDescriptorFactory.HUE_VIOLET);
+//            GoogleMapEventHandler.moveCamera(latLng, 16);
+            Toast.makeText(this, "Google map connected. Position: " + latLng , Toast.LENGTH_SHORT);
         }
 
     }

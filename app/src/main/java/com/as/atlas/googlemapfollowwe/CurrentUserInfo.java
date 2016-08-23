@@ -16,13 +16,16 @@ public class CurrentUserInfo {
     private static final String DEFAULT_PWD = "1234";
     public static final LatLng LATLNG_TAIPEI_101 = new LatLng(25.033408, 121.564099);  // 101
 
-    public String name;
+    public String name = "User01";
     private String pwd = DEFAULT_PWD;
     public int roomNo = DEFAULT_ROOM_NO;
     public int iconNo = R.mipmap.ic_launcher;
     public LatLng latLng = LATLNG_TAIPEI_101;
     public Place destination;
 
+
+    public CurrentUserInfo() {
+    }
 
     public CurrentUserInfo(String name, String pwd, int roomNo) {
         this.name = name;

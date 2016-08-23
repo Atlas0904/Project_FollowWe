@@ -311,7 +311,9 @@ public class MapsActivity extends AppCompatActivity
         buttonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                sendDestionationToServer(currentUserInfo.destination);
+                if ("".equals(currentUserInfo.destination)) {
+                    sendDestionationToServer(currentUserInfo.destination);
+                }
             }
         });
 
@@ -590,15 +592,16 @@ public class MapsActivity extends AppCompatActivity
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        double[] lats = new double[userRoute.size()];
-        double[] lngs = new double[userRoute.size()];
-        for (int i = 0; i < userRoute.size(); i++) {
-            lats[i] = userRoute.get(i).latitude;
-            lngs[i] = userRoute.get(i).longitude;
+        if (userRoute != null) {
+            double[] lats = new double[userRoute.size()];
+            double[] lngs = new double[userRoute.size()];
+            for (int i = 0; i < userRoute.size(); i++) {
+                lats[i] = userRoute.get(i).latitude;
+                lngs[i] = userRoute.get(i).longitude;
+            }
+            outState.putDoubleArray(EXTRA_LATS, lats);
+            outState.putDoubleArray(EXTRA_LNGS, lngs);
         }
-        outState.putDoubleArray(EXTRA_LATS, lats);
-        outState.putDoubleArray(EXTRA_LNGS, lngs);
-
         mapPlaceSelectionListener.saveMarkerToSharePref();
     }
 
@@ -646,22 +649,22 @@ public class MapsActivity extends AppCompatActivity
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
             }
-
+            Log.d(TAG, "onConnected: permission denied.");
             return;
         }
 
         googleMap.setMyLocationEnabled(true);
+
         createLocationRequest();
-        LocationServices.FusedLocationApi.requestLocationUpdates(
-                googleApiClient, locationRequest, MapsActivity.this);
-
-
+        LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, MapsActivity.this);
         currentLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+        Log.d(TAG, "onConnected: currentLocation=" + currentLocation);
         if (currentLocation != null) {
             LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());   // 有可能 Geany 一開始給錯  導致沒有路線圖
 //            GoogleMapEventHandler.addMarker(latLng, latLng.toString(), BitmapDescriptorFactory.HUE_VIOLET);
 //            GoogleMapEventHandler.moveCamera(latLng, 16);
-            Toast.makeText(this, "Google map connected. Position: " + latLng , Toast.LENGTH_SHORT);
+            Toast.makeText(this, "Google map connected. Position: " + latLng , Toast.LENGTH_SHORT).show();
+            GoogleMapEventHandler.moveCamera(latLng, 16);
         }
 
     }

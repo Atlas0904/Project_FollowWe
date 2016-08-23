@@ -9,16 +9,20 @@ public class CurrentUserInfo {
     public final static String NAME = "NAME";
     public final static String PWD = "PWD";
     public final static String NUMBER_ROOM = "ROOM_NUMBER";
+    public final static String ICON_NO = "ICON_NO";
+
 
     private static final int DEFAULT_ROOM_NO = 904;
     private static final String DEFAULT_PWD = "1234";
     public static final LatLng LATLNG_TAIPEI_101 = new LatLng(25.033408, 121.564099);  // 101
 
     public String name;
-    private String pwd;
-    public int roomNo;
-    public LatLng latLng;
+    private String pwd = DEFAULT_PWD;
+    public int roomNo = DEFAULT_ROOM_NO;
+    public int iconNo = R.mipmap.ic_launcher;
+    public LatLng latLng = LATLNG_TAIPEI_101;
     public Place destination;
+
 
     public CurrentUserInfo(String name, String pwd, int roomNo) {
         this.name = name;
@@ -26,16 +30,14 @@ public class CurrentUserInfo {
         this.roomNo = roomNo;
     }
 
-    public CurrentUserInfo(String name) {
+    public CurrentUserInfo(String name, int iconNo) {
         this.name = name;
-        this.pwd = DEFAULT_PWD;
-        this.roomNo = DEFAULT_ROOM_NO;
-        this.latLng = LATLNG_TAIPEI_101;
+        this.iconNo = iconNo;
     }
 
     @Override
     public String toString() {
-        return "CurrentUserInfo: name=" + name + " pwd=" + pwd + " roomNo=" + roomNo + " latLng=" + latLng + " destination=" + destination;
+        return "CurrentUserInfo: name=" + name + " pwd=" + pwd + " roomNo=" + roomNo + " latLng=" + latLng + " destination=" + destination + " iconNo=" +iconNo;
 
     }
 }

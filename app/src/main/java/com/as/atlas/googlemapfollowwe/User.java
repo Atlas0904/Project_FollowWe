@@ -10,11 +10,12 @@ public class User {
     public String name;
     public double lat;
     public double lng;
+    public int iconNo = R.mipmap.ic_launcher;
 
     public static final double DEFAULT_LAT = 25.055408;
     public static final double DEFAULT_LNG = 121.554099;
 
-    ArriveMethod arriveMethod;
+    ArriveMethod arriveMethod = ArriveMethod.WALKING;
 
     enum ArriveMethod{
         WALKING, BICYCLE, CAR
@@ -31,20 +32,21 @@ public class User {
         this.lng = DEFAULT_LNG;
     }
 
-    public User(String name, double lat, double lng) {
+    public User(String name, double lat, double lng, int iconNo) {
         this.name = name;
         this.lat = lat;
         this.lng = lng;
-        arriveMethod = ArriveMethod.WALKING;
+        this.iconNo = iconNo;
     }
 
     //Getters and setters
     public String getName() { return name; }
     public double getLat() { return lat; }
     public double getLng() { return lng; }
+    public int getIconNo() { return iconNo; }
 
     @Override
     public String toString() {
-        return "[User] name=" + name + " lat=" + lat + " lng=" + lng;
+        return "[User] name=" + name + " lat=" + lat + " lng=" + lng + " iconNo=" + iconNo;
     }
 }

@@ -57,6 +57,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -170,6 +172,8 @@ public class MapsActivity extends AppCompatActivity
     // Note: remember to add package in Google console
     // https://console.developers.google.com/apis/credentials?project=at-shareyourlocation
 
+    List<LatLng> userRoute;
+    Polyline line;
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -218,7 +222,6 @@ public class MapsActivity extends AppCompatActivity
         AlertDialog alertDialog = alertDialogBuilder.create();
         alertDialog.setCanceledOnTouchOutside(true);
         alertDialog.show();
-
     }
 
     @Override
@@ -634,16 +637,29 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onLocationChanged(Location location) {
         log("onLocationChanged location: " + location);
+
+
         textViewLatitude.setText(String.valueOf(location.getLatitude()));
         textViewLongtitude.setText(String.valueOf(location.getLongitude()));
 
         LatLng fromLoc = new LatLng(currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude);
         LatLng toLoc = new LatLng(location.getLatitude(), location.getLongitude());
 
-        Polyline line = googleMap.addPolyline(new PolylineOptions()
-                .add(fromLoc, toLoc)
-                .width(30)
-                .color(Color.RED));
+        if (userRoute == null)  userRoute = new ArrayList<>();
+        userRoute.add(toLoc);
+
+        if (line != null) line.remove();
+
+        PolylineOptions points = new PolylineOptions();
+        for (LatLng pt: userRoute) {
+            points.add(pt);
+        }
+        line = googleMap.addPolyline(points.width(30).color(Color.RED));
+
+//        Polyline line = googleMap.addPolyline(new PolylineOptions()
+//                .add(fromLoc, toLoc)
+//                .width(30)
+//                .color(Color.RED));
 
         userOnlineChangeValueEventListener.updateCurrentUserLocation(currentUserInfo, location);
 

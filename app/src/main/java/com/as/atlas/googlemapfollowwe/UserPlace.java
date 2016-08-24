@@ -1,5 +1,7 @@
 package com.as.atlas.googlemapfollowwe;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,37 +9,55 @@ import java.util.List;
  * Created by atlas on 2016/8/24.
  */
 public class UserPlace {
+    private final static String CHAR_ORI = ".";
+    private final static String CHAR_REPLACE = "d";
+
     public String id ="";
     public String addr ="";
     public String markedby ="";
+    public String comment = "(comment)";
     public double lat = 0d;
     public double lng = 0d;
-    int start = 0;
+    public float color;
+    int star = 0;
     public List<UserMessage> userMessages;
 
 
     public UserPlace() {}
-
-    public class UserMessage {
-        public String user;
-        public String msg;
-        public String timestamp;
-        public UserMessage() {}
-    }
-
-
     public UserPlace(double lat, double lng) {
         this.lat = lat;
         this.lng = lng;
-        this.id = String.valueOf(lat) + "_" + String.valueOf(lng);
-        this.id = id.replace(".","d");
+        this.id = getId();
         userMessages = new ArrayList<UserMessage>();
     }
 
+    public static String getId(LatLng latLng) {
+        String ret = String.valueOf(latLng.latitude) + "_" + String.valueOf(latLng.longitude);
+        ret = ret.replace(CHAR_ORI, CHAR_REPLACE);
+        return ret;
+    }
 
-    private String adjustId() {
-        this.id = String.valueOf(lat) + "_" + String.valueOf(lng);
-        return id;
+
+    public String getId() {
+        String ret = String.valueOf(lat) + "_" + String.valueOf(lng);
+        ret = ret.replace(CHAR_ORI, CHAR_REPLACE);
+        return ret;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || !(o instanceof UserPlace) )  return false;
+
+        UserPlace u = (UserPlace) o;
+        return this.id.equals(u.id) &&
+                this.addr.equals(u.addr) &&
+                this.markedby.equals(u.markedby) &&
+                this.comment.equals(u.comment) &&
+                this.lat == u.lat &&
+                this.lng == u.lng &&
+                this.star == u.star &&
+                this.userMessages.size() == u.userMessages.size() &&
+                this.userMessages.equals(u.userMessages);
     }
 
     @Override
@@ -46,9 +66,10 @@ public class UserPlace {
                 " id=" + id +
                 " addr=" + addr +
                 " markedby=" + markedby +
+                " comment=" + comment +
                 " lat=" +lat +
                 " lng=" + lng +
-                " start=" + start +
+                " start=" + star +
                 " userMessage=" + userMessages;
     }
 }

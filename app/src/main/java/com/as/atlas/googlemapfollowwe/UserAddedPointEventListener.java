@@ -7,7 +7,15 @@ import com.firebase.client.ChildEventListener;
 import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
+import com.firebase.client.Query;
 import com.firebase.client.ValueEventListener;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by atlas on 2016/8/24.
@@ -15,9 +23,12 @@ import com.firebase.client.ValueEventListener;
 public class UserAddedPointEventListener implements ValueEventListener, ChildEventListener {
 
     private static final String TAG = UserAddedPointEventListener.class.getSimpleName();
-    private final Context context;
-    private final Firebase ref;
+    private static Context context;
+    private static Firebase ref;
+    private static Query queryRef;
     private UserPlace userPlace;
+
+    public HashMap<String, UserPlaceMisc> userPlaces;
 
     public UserAddedPointEventListener(Context context, Firebase root, CurrentUserInfo currentUserInfo) {
         this.context = context;
@@ -27,10 +38,32 @@ public class UserAddedPointEventListener implements ValueEventListener, ChildEve
         Log.d(TAG, "ref=" + ref);
     }
 
-    public void setValue(UserPlace userPlace) {
-        Log.d(TAG, "setValue: ref" + ref);
-//        ref.child(NodeDefineOnFirebase.NODE_USER_ADDED_MARKER).setValue(userPlace);   // !!!!! 記得要設定乘 ref 的 user name 的... 要多一個 index
+    public static void setValue(UserPlace userPlace) {
+        Log.d(TAG, "setValue: userPlace" + userPlace);
+        // Use lat_lng replace "." to "d" as unique id
         ref.child(userPlace.id).setValue(userPlace);
+    }
+
+    public static void query(String key, String value) {
+        queryRef = ref.orderByChild(key).equalTo(value);
+        queryRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Log.d(TAG, "query -> onChildAdded: dataSnapshot=" + dataSnapshot + " s=" + s);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {}
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
+
+            @Override
+            public void onCancelled(FirebaseError firebaseError) {}
+        });
     }
 
     @Override
@@ -39,31 +72,49 @@ public class UserAddedPointEventListener implements ValueEventListener, ChildEve
         for (DataSnapshot child: dataSnapshot.getChildren()) {
             userPlace = child.getValue(UserPlace.class);
             Log.d(TAG, "onDataChange: userPlace=" + userPlace);
+
+            addUserPlaceInfoList(userPlace);
         }
     }
 
-    @Override
-    public void onCancelled(FirebaseError firebaseError) {
+    private void addUserPlaceInfoList(UserPlace userPlace) {
+        if (userPlaces == null) userPlaces = new HashMap<String, UserPlaceMisc>();
 
+        String id = userPlace.getId();
+        if (!userPlaces.containsKey(id)) {
+            // put into the map
+            LatLng latLng  = new LatLng(userPlace.lat, userPlace.lng);
+            Marker marker = GoogleMapEventHandler.addMarker(latLng, userPlace.addr, userPlace.markedby + ": " + userPlace.comment, BitmapDescriptorFactory.HUE_RED);
+            userPlaces.put(id, new UserPlaceMisc(userPlace, marker, false));
+        } else {
+            UserPlaceMisc savedUserPlace = userPlaces.get(id);
+            if (!savedUserPlace.userPlace.equals(userPlace)) {
+                savedUserPlace.userPlace = userPlace;
+                userPlaces.put(id, savedUserPlace);  // Just put into array, update will perform as user click info window
+            }
+        }
+    }
+
+    public Marker getMarker(String id) {
+        return userPlaces.get(id).marker;
+    }
+
+    public HashMap<String, UserPlaceMisc> getUserPlaces() {
+        return userPlaces;
     }
 
     @Override
-    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-
-    }
+    public void onCancelled(FirebaseError firebaseError) {}
 
     @Override
-    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-    }
+    public void onChildAdded(DataSnapshot dataSnapshot, String s) {}
 
     @Override
-    public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-    }
+    public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
 
     @Override
-    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+    public void onChildRemoved(DataSnapshot dataSnapshot) {}
 
-    }
+    @Override
+    public void onChildMoved(DataSnapshot dataSnapshot, String s) {}
 }

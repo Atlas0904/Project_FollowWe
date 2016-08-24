@@ -108,12 +108,14 @@ public class LoginActivity extends AppCompatActivity {
         Type type = new TypeToken<CurrentUserInfo>(){}.getType();
         currentUserInfo = gson.fromJson(json, type);
 
-        // setup on UI
-        editTextName.setText(currentUserInfo.name);
-        editTextRoomNo.setText(String.valueOf(currentUserInfo.roomNo));
-        buttonIconSelect.setBackgroundResource(currentUserInfo.iconNo);
+        if (currentUserInfo != null) {
+            // setup on UI
+            editTextName.setText(currentUserInfo.name);
+            editTextRoomNo.setText(String.valueOf(currentUserInfo.roomNo));
+            buttonIconSelect.setBackgroundResource(currentUserInfo.iconNo);
 
-        Log.d(TAG, "loadCurrentUserFromSharePref: currentUserInfo=" + currentUserInfo);
+            Log.d(TAG, "loadCurrentUserFromSharePref: currentUserInfo=" + currentUserInfo);
+        }
         return currentUserInfo;
     }
 

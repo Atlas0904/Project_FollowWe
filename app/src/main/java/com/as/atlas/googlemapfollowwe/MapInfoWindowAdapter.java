@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 
 /**
@@ -57,7 +58,12 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
         textViewAddr.setText(marker.getSnippet());
         textViewStar.setText("5");
 
-        listAdapter = new ChatMessageAdapter(context);
+        // find UserPlace
+        // Put into constructor
+        LatLng latLng = marker.getPosition();
+
+        UserPlace userPlace = new UserPlace();
+        listAdapter = new ChatMessageAdapter(context, userPlace);
         listViewChatMsg.setAdapter(listAdapter);
 
         return view;
@@ -66,8 +72,11 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
     public class ChatMessageAdapter extends BaseAdapter {
 
         private LayoutInflater layoutInflater;
-        public ChatMessageAdapter(Context context) {
+        private UserPlace userPlace;
+
+        public ChatMessageAdapter(Context context, UserPlace userPlace) {
             layoutInflater = LayoutInflater.from(context);
+            this.userPlace = userPlace;
         }
 
         @Override

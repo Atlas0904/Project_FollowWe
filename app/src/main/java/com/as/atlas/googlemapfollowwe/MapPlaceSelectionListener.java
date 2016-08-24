@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.os.Bundle;
@@ -12,6 +13,7 @@ import android.os.Handler;
 import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
@@ -29,9 +31,12 @@ import com.google.gson.reflect.TypeToken;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by atlas on 2016/8/10.
@@ -53,11 +58,21 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
     SharedPreferences appSharedPrefs;
     SharedPreferences.Editor prefsEditor;
 
+    TextView textViewAddress;
+    TextView title;
+    View view;
+    AlertDialog.Builder builder;
+
     private Context context;
     public MapPlaceSelectionListener(Context context) {
         this.context = context;
         appSharedPrefs = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
         prefsEditor = appSharedPrefs.edit();
+        prepareForDialog();
+    }
+
+    private void prepareForDialog() {
+
     }
 
     @Override
@@ -150,35 +165,11 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
                 double[] d = msg.getData().getDoubleArray(KEY_LATLNG);
                 Log.d(TAG, "handleMessage: addr=" + addr + " d=" + d);
 
-                TextView textViewAddress = (TextView) ((Activity) context).findViewById(R.id.textViewAddress);
+                textViewAddress = (TextView) ((Activity) context).findViewById(R.id.textViewAddress);
                 textViewAddress.setText(addr);
+                LatLng latLng = new LatLng(d[0], d[1]);
 
-                final LatLng latLng = new LatLng(d[0], d[1]);
-
-                LayoutInflater layoutInflater = LayoutInflater.from(context);
-                final View view = layoutInflater.inflate(R.layout.dialog_input_message, null);
-
-                AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                builder.setView(view)
-                        .setTitle("Follow We: Marker");
-                //.setMessage("Do you want add marker on map?")
-                builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        // continue with delete
-                        EditText editTextMsg = (EditText) view.findViewById(R.id.editTextLeaveMsg);
-                        String title = editTextMsg.getText().toString();
-
-                        addMarkerToList(latLng, title, addr, BitmapDescriptorFactory.HUE_RED);
-                    }
-                })
-                        .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
-                            public void onClick(DialogInterface dialog, int which) {
-                                // do nothing
-                            }
-                        })
-                        .setIcon(android.R.drawable.ic_dialog_alert)
-                        .show();
-
+                showAddMarkerDialog(latLng, addr);
                 break;
             }
             default:
@@ -186,6 +177,49 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
         }
     }
 
+    private void showAddMarkerDialog(final LatLng latLng, final String addr) {
+
+        title = new TextView(context);
+        title.setText("Follow We!");
+        title.setGravity(Gravity.CENTER_HORIZONTAL);
+        title.setTextSize(20);
+        title.setTextColor(Color.BLACK);
+
+        view = LayoutInflater.from(context).inflate(R.layout.dialog_input_message, null);
+        builder = new AlertDialog.Builder(context);
+
+        builder.setView(view);
+        builder.setCustomTitle(title);
+        builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                // continue with delete
+                EditText editTextMsg = (EditText) view.findViewById(R.id.editTextLeaveMsg);
+                String title = editTextMsg.getText().toString();
+                //addMarkerToList(latLng, title, addr, BitmapDescriptorFactory.HUE_RED);
+
+                // Add to Firebase server
+                UserPlace userPlace = new UserPlace(latLng.latitude, latLng.longitude);
+                userPlace.addr = addr;
+                userPlace.markedby = MapsActivity.getCurrentUserInfo().name;
+                userPlace.comment = title;
+                userPlace.star = 5;
+                userPlace.userMessages = new ArrayList<UserMessage>();
+                UserMessage userMessage = new UserMessage(MapsActivity.getCurrentUserInfo().name, "Welcome to Follow We!", Utils.getCurrentTimeStamp());
+                Log.d(TAG, "EVENT_RETURN_SEARCH_ADDRESS_RESULT time:" + Utils.getCurrentTimeStamp());
+
+                userPlace.userMessages.add(userMessage);
+
+                UserAddedPointEventListener.setValue(userPlace);
+                UserAddedPointEventListener.query("id", userPlace.id);
+            }
+        });
+        builder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+            }
+        });
+        builder.show();
+
+    }
 
 
     public void addMarkerToList(LatLng latLng, String title, String addr, float icon) {

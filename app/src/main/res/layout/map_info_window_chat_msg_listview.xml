@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal" >
+
+    <TextView
+        android:id="@+id/textViewListViewUserName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="User:"
+        android:textSize="12dp" />
+
+    <TextView
+        android:id="@+id/textViewListViewMsg"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="message"
+        android:textSize="12dp"
+        android:layout_alignParentTop="true"
+        android:layout_toRightOf="@+id/textViewListViewUserName"
+        android:layout_toEndOf="@+id/textViewListViewUserName" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="time"
+        android:id="@+id/textViewListViewTime"
+        android:textSize="12dp"
+        android:layout_alignBottom="@+id/textViewListViewMsg"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
+
+</RelativeLayout>

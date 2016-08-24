@@ -1,6 +1,7 @@
 package com.as.atlas.googlemapfollowwe;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -20,12 +21,14 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,7 +78,9 @@ public class MapsActivity extends AppCompatActivity
         GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         OnMapReadyCallback,
-        LocationListener, GoogleMap.OnInfoWindowLongClickListener, RoutingListener {
+        LocationListener,
+        GoogleMap.OnInfoWindowClickListener,
+        GoogleMap.OnInfoWindowLongClickListener, RoutingListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     private static final long LOCATION_REQUEST_INTERVAL_MS = 500;
@@ -165,6 +170,8 @@ public class MapsActivity extends AppCompatActivity
 
     }
 
+
+
     //Local variable
     public class UIHandler extends Handler {
         public final static int EVENT_UI_UPDATE_DURATION = 1;
@@ -202,6 +209,7 @@ public class MapsActivity extends AppCompatActivity
     private UserInfoValueEventListener userInfoValueEventListener;
     private UserOnlineChangeValueEventListener userOnlineChangeValueEventListener;
     private DestinationValueEventListener destinationValueEventListener;
+    private UserAddedPointEventListener userAddedPointEventListener;
 
     private GoogleMapEventHandler googleMapEventHandler;
     private OnMapReadyCallback onMapReadyCallback;
@@ -311,9 +319,9 @@ public class MapsActivity extends AppCompatActivity
         buttonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if ("".equals(currentUserInfo.destination)) {
+                //if ("".equals(currentUserInfo.destination)) {
                     sendDestionationToServer(currentUserInfo.destination);
-                }
+                //}
             }
         });
 
@@ -401,6 +409,10 @@ public class MapsActivity extends AppCompatActivity
 
     private void sendDestionationToServer(com.as.atlas.googlemapfollowwe.Place place) {
         Log.d(TAG, "sendDestionationToServer: place=" + place);
+
+        UserPlace userPlace = new UserPlace(place.lat, place.lng);
+        userAddedPointEventListener.setValue(userPlace);
+
         if (place.lat != 0.0 || place.lng != 0.0) {
             destinationValueEventListener.setPlace(place);
         }
@@ -435,6 +447,7 @@ public class MapsActivity extends AppCompatActivity
         userOnlineChangeValueEventListener.setUser(user);
 
         destinationValueEventListener = new DestinationValueEventListener(this, mFirebase, currentUserInfo);
+        userAddedPointEventListener = new UserAddedPointEventListener(this, mFirebase, currentUserInfo);
 
 
         mFirebaseUser = mFirebase.child(NodeDefineOnFirebase.NODE_PRESENCE).child(currentUserInfo.name);  // Used to info on-line
@@ -500,8 +513,11 @@ public class MapsActivity extends AppCompatActivity
         mapPlaceSelectionListener.putMarkerListToMap();
         userInfoValueEventListener = new UserInfoValueEventListener(googleMapEventHandler);
         mFirebaseUserInfo.addValueEventListener(userInfoValueEventListener);
-        googleMap.setOnMapClickListener(this);
-        googleMap.setOnInfoWindowLongClickListener(this);
+
+
+
+
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -513,7 +529,15 @@ public class MapsActivity extends AppCompatActivity
             Log.d(TAG, "Permission check for setMyLocationEnable");
             return;
         }
+
+        // GoogleMap event
+        googleMap.setOnMapClickListener(this);
+        googleMap.setOnInfoWindowClickListener(this);
+        googleMap.setOnInfoWindowLongClickListener(this);
         googleMap.setMyLocationEnabled(true);
+
+        googleMap.setInfoWindowAdapter(new MapInfoWindowAdapter(this));
+
     }
 
 
@@ -623,6 +647,7 @@ public class MapsActivity extends AppCompatActivity
                         addApi(Places.PLACE_DETECTION_API).
                         enableAutoManage(this, this).
                         build();
+
         googleApiClient.connect();
     }
 
@@ -819,6 +844,38 @@ public class MapsActivity extends AppCompatActivity
                         });
             }
         }).start();
+    }
+
+    @Override
+    public void onInfoWindowClick(final Marker marker) {
+        String title = marker.getTitle();
+        final String snippetOrig = marker.getSnippet();
+
+        LayoutInflater layoutInflater = LayoutInflater.from(MapsActivity.this);
+        final View view = layoutInflater.inflate(R.layout.dialog_input_chat_message, null);
+
+        TextView textViewUserName = (TextView) view.findViewById(R.id.textViewUserName);
+        textViewUserName.setText(currentUserInfo.name);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
+        builder.setView(view);
+        builder.setTitle("Follow We: Mark Message");
+        builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                // continue with delete
+                EditText editTextMsg = (EditText) view.findViewById(R.id.editTextChatMsg);
+                String snippet = snippetOrig + "\n" +
+                        currentUserInfo.name + ": " + editTextMsg.getText().toString();
+
+                marker.setSnippet(snippet);
+            }
+        });
+        builder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                // do nothing
+            }
+        }).setIcon(android.R.drawable.ic_dialog_alert).show();
+
     }
 
     @Override

@@ -73,6 +73,7 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
     public class SearchLatLngThread implements Runnable {
         public void run() {
             double[] d = Utils.getLatLngFromGoogleMapAPI(suggestedPlace);
+            // Check some place can not interpret to latLng
             if (d == null) return;
             Log.d(TAG, "SearchLatLngThread d:" + d[0] + "/" + d[1]);
             Message msg = MapPlaceSelectionListener.this.obtainMessage(EVENT_ON_SUGGEST_PLACE_DONE);
@@ -140,6 +141,7 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
                 GoogleMapEventHandler.moveCamera(latLng, 16);
                 com.as.atlas.googlemapfollowwe.Place place = new com.as.atlas.googlemapfollowwe.Place(latLng.latitude, latLng.longitude, suggestedPlace);
                 MapsActivity.getCurrentUserInfo().destination = place;
+                Log.d(TAG, "EVENT_ON_SUGGEST_PLACE_DONE place=" + place);
                 break;
             }
             case EVENT_RETURN_SEARCH_ADDRESS_RESULT: {

@@ -9,4 +9,5 @@ public class NodeDefineOnFirebase {
     public final static String NODE_PRESENCE = "presence";
     public final static String NODE_USER = "user";
     public final static String NODE_DESTINATION = "destination";
+    public final static String NODE_USER_ADDED_MARKER = "user_added_marker";
 }

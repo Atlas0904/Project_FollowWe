@@ -55,11 +55,14 @@ public class LoginActivity extends AppCompatActivity {
         editTextPwd = (EditText) findViewById(R.id.editTextPwd);
         editTextRoomNo = (EditText) findViewById(R.id.editTextRoomNo);
 
+        buttonLogin = (Button) findViewById(R.id.buttonLogin);
+        buttonIconSelect = (Button) findViewById(R.id.buttonIconSelect);
+
         appSharedPrefs = PreferenceManager.getDefaultSharedPreferences(this.getApplicationContext());
         prefsEditor = appSharedPrefs.edit();
         currentUserInfo = (loadCurrentUserFromSharePref() != null) ? loadCurrentUserFromSharePref() : new CurrentUserInfo();
 
-        buttonLogin = (Button) findViewById(R.id.buttonLogin);
+
         buttonLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -75,7 +78,6 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        buttonIconSelect = (Button) findViewById(R.id.buttonIconSelect);
         buttonIconSelect.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -106,6 +108,11 @@ public class LoginActivity extends AppCompatActivity {
         Type type = new TypeToken<CurrentUserInfo>(){}.getType();
         currentUserInfo = gson.fromJson(json, type);
 
+        // setup on UI
+        editTextName.setText(currentUserInfo.name);
+        editTextRoomNo.setText(String.valueOf(currentUserInfo.roomNo));
+        buttonIconSelect.setBackgroundResource(currentUserInfo.iconNo);
+
         Log.d(TAG, "loadCurrentUserFromSharePref: currentUserInfo=" + currentUserInfo);
         return currentUserInfo;
     }
@@ -117,6 +124,7 @@ public class LoginActivity extends AppCompatActivity {
         if (requestCode == INTENT_REQUSET_LOGIN_ICON_SELECT_ACTIVITY) {
             if (resultCode == RESULT_OK) {
                 currentUserInfo.iconNo = data.getIntExtra(LoginIconSelectActivity.EXTRA_USER_SELECT_IMG, R.mipmap.ic_launcher);
+                Log.d(TAG, "onActivityResult: icon=" + currentUserInfo.iconNo);
                 buttonIconSelect.setBackgroundResource(currentUserInfo.iconNo);
             }
         }

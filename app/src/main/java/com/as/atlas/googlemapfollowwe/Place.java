@@ -13,6 +13,11 @@ public class Place {
     public float placeId;
     public int duration;
     public int distance;
+    public int score;
+    public String comment;
+    public String timestamp;
+    public String filename;
+
 
     //Introducing the dummy constructor
     public Place() {
@@ -27,6 +32,7 @@ public class Place {
 
     @Override
     public String toString() {
-        return "[Place] lat=" + lat + " lng=" + lng  + " address=" + address + " placeId:" + placeId + " duration:" + duration + " distance=" + distance;
+        return "[Place] lat=" + lat + " lng=" + lng  + " address=" + address + " placeId:" + placeId + " duration:" + duration + " distance=" + distance +
+                " score=" + score + " comment=" + comment + " timestamp=" + timestamp + " filename=" + filename;
     }
 }

@@ -210,6 +210,8 @@ public class MapsActivity extends AppCompatActivity
     private DestinationValueEventListener destinationValueEventListener;
     private UserAddedPointEventListener userAddedPointEventListener;
 
+    private MapInfoWindowAdapter mapInfoWindowAdapter;
+
     private GoogleMapEventHandler googleMapEventHandler;
     private OnMapReadyCallback onMapReadyCallback;
 
@@ -530,7 +532,8 @@ public class MapsActivity extends AppCompatActivity
         googleMap.setOnInfoWindowLongClickListener(this);
         googleMap.setMyLocationEnabled(true);
 
-        googleMap.setInfoWindowAdapter(new MapInfoWindowAdapter(this));
+        mapInfoWindowAdapter = new MapInfoWindowAdapter(this, userAddedPointEventListener);
+        googleMap.setInfoWindowAdapter(mapInfoWindowAdapter);
 
     }
 
@@ -869,23 +872,29 @@ public class MapsActivity extends AppCompatActivity
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
         builder.setView(view);
-        builder.setTitle("Follow We: Mark Message");
+        builder.setTitle("Follow We: Leave Message");
         builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 // continue with delete
                 EditText editTextMsg = (EditText) view.findViewById(R.id.editTextChatMsg);
-                String snippet = snippetOrig + "\n" +
-                        currentUserInfo.name + ": " + editTextMsg.getText().toString();
-
-                marker.setSnippet(snippet);
+                String msg = editTextMsg.getText().toString();
+                addMessageToInfoWindow(marker, msg);
             }
         });
         builder.setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 // do nothing
             }
-        }).setIcon(android.R.drawable.ic_dialog_alert).show();
+        }).show();
 
+    }
+
+    private void addMessageToInfoWindow(Marker marker, String msg) {
+        LatLng latLng = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
+        UserPlace userPlace = userAddedPointEventListener.getUserPlaces().get(UserPlace.getId(latLng)).userPlace;
+        userPlace.userMessages.add(new UserMessage(currentUserInfo.name, msg, Utils.getCurrentTimeStamp()));
+        userAddedPointEventListener.setValue(userPlace);
+        marker.hideInfoWindow();
     }
 
     @Override

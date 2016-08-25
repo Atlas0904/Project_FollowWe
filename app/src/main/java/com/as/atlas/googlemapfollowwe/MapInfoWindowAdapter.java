@@ -20,8 +20,9 @@ import com.google.android.gms.maps.model.Marker;
  */
 public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
-    private static final int INFO_WINDOW_SIZE = 800;
+    private static final int INFO_WINDOW_SIZE = 1500;
     private Context context;
+    private UserAddedPointEventListener userAddedPointEventListener;
 
     private View view;
 
@@ -30,20 +31,19 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
     private TextView textViewStar;
     private ListView listViewChatMsg;
 
-    private String[] chatMessages = {"鉛筆","原子筆","鋼筆","毛筆","彩色筆"};
     private ChatMessageAdapter listAdapter;
 
-    public MapInfoWindowAdapter(Context context) {
+    public MapInfoWindowAdapter(Context context, UserAddedPointEventListener userAddedPointEventListener) {
         this.context = context;
         LayoutInflater layoutInflater = LayoutInflater.from(context);
         view = layoutInflater.inflate(R.layout.map_info_window_layout, null);
         view.setLayoutParams(new RelativeLayout.LayoutParams(INFO_WINDOW_SIZE, RelativeLayout.LayoutParams.WRAP_CONTENT));
+        this.userAddedPointEventListener = userAddedPointEventListener;
 
         textViewLatLng = (TextView) view.findViewById(R.id.textViewInfoWinLatLng);
         textViewAddr = (TextView) view.findViewById(R.id.textViewInfoWinAddr);
         textViewStar = (TextView) view.findViewById(R.id.textViewInfoWinStar);
         listViewChatMsg = (ListView) view.findViewById(R.id.listViewChatMsg);
-
     }
 
     @Override
@@ -61,8 +61,9 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
         // find UserPlace
         // Put into constructor
         LatLng latLng = marker.getPosition();
+        String id =UserPlace.getId(latLng);
+        UserPlace userPlace = userAddedPointEventListener.getUserPlaces().get(id).userPlace;
 
-        UserPlace userPlace = new UserPlace();
         listAdapter = new ChatMessageAdapter(context, userPlace);
         listViewChatMsg.setAdapter(listAdapter);
 
@@ -81,12 +82,12 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
         @Override
         public int getCount() {
-            return chatMessages.length;
+            return userPlace.userMessages.size();
         }
 
         @Override
         public Object getItem(int pos) {
-            return chatMessages[pos];
+            return userPlace.userMessages.get(pos);
         }
 
         @Override
@@ -95,15 +96,15 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
         }
 
         @Override
-        public View getView(int i, View view, ViewGroup viewGroup) {
+        public View getView(int pos, View view, ViewGroup viewGroup) {
             view = layoutInflater.inflate(R.layout.map_info_window_chat_msg_listview, null);
             TextView textViewName = (TextView) view.findViewById(R.id.textViewListViewUserName);
             TextView textViewMsg = (TextView) view.findViewById(R.id.textViewListViewMsg);
             TextView textViewTime = (TextView) view.findViewById(R.id.textViewListViewTime);
 
-            textViewName.setText("user:");
-            textViewMsg.setText("msg");
-            textViewTime.setText("03:57");
+            textViewName.setText(userPlace.userMessages.get(pos).user);
+            textViewMsg.setText(userPlace.userMessages.get(pos).msg);
+            textViewTime.setText(userPlace.userMessages.get(pos).timestamp);
 
             return view;
         }

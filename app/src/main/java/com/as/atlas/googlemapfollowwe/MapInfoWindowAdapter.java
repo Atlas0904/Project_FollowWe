@@ -1,6 +1,7 @@
 package com.as.atlas.googlemapfollowwe;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,11 +22,13 @@ import com.google.android.gms.maps.model.Marker;
 public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
     private static final int INFO_WINDOW_SIZE = 1500;
+    private static final String TAG = MapInfoWindowAdapter.class.getSimpleName();
     private Context context;
     private UserAddedPointEventListener userAddedPointEventListener;
 
     private View view;
 
+    private TextView textViewUserComment;
     private TextView textViewLatLng;
     private TextView textViewAddr;
     private TextView textViewStar;
@@ -40,6 +43,7 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
         view.setLayoutParams(new RelativeLayout.LayoutParams(INFO_WINDOW_SIZE, RelativeLayout.LayoutParams.WRAP_CONTENT));
         this.userAddedPointEventListener = userAddedPointEventListener;
 
+        textViewUserComment = (TextView) view.findViewById(R.id.textViewInfoWinUserComment);
         textViewLatLng = (TextView) view.findViewById(R.id.textViewInfoWinLatLng);
         textViewAddr = (TextView) view.findViewById(R.id.textViewInfoWinAddr);
         textViewStar = (TextView) view.findViewById(R.id.textViewInfoWinStar);
@@ -54,18 +58,26 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
     @Override
     public View getInfoContents(Marker marker) {
 
-        textViewLatLng.setText(marker.getTitle());
-        textViewAddr.setText(marker.getSnippet());
-        textViewStar.setText("5");
+        Log.d(TAG, "getInfoContents: marker.getPosition=" + marker.getPosition());
 
         // find UserPlace
         // Put into constructor
         LatLng latLng = marker.getPosition();
         String id =UserPlace.getId(latLng);
-        UserPlace userPlace = userAddedPointEventListener.getUserPlaces().get(id).userPlace;
+        if (userAddedPointEventListener.getUserPlaces() != null && userAddedPointEventListener.getUserPlaces().get(id) != null) {
+            UserPlace userPlace = userAddedPointEventListener.getUserPlaces().get(id).userPlace;
 
-        listAdapter = new ChatMessageAdapter(context, userPlace);
-        listViewChatMsg.setAdapter(listAdapter);
+            textViewUserComment.setText(userPlace.comment + " by " + userPlace.markedby);
+            textViewLatLng.setText(latLng.toString());
+            textViewAddr.setText(userPlace.addr);
+            textViewStar.setText(String.valueOf(userPlace.star));
+
+            listAdapter = new ChatMessageAdapter(context, userPlace);
+            listViewChatMsg.setAdapter(listAdapter);
+        } else {
+            Log.e(TAG, "*** Notice *** getInfoContents: userPlaces=" + userAddedPointEventListener.dump(userAddedPointEventListener.getUserPlaces()));
+            return null;
+        }
 
         return view;
     }

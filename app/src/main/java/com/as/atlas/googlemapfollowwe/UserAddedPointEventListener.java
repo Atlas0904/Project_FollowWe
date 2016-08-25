@@ -15,7 +15,9 @@ import com.google.android.gms.maps.model.Marker;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by atlas on 2016/8/24.
@@ -42,6 +44,11 @@ public class UserAddedPointEventListener implements ValueEventListener, ChildEve
         Log.d(TAG, "setValue: userPlace" + userPlace);
         // Use lat_lng replace "." to "d" as unique id
         ref.child(userPlace.id).setValue(userPlace);
+    }
+
+    public static void removeValue(LatLng latLng) {
+        Log.d(TAG, "removeValue: latLng" + latLng);
+        ref.child(UserPlace.getId(latLng)).removeValue();
     }
 
     public static void query(String key, String value) {
@@ -103,6 +110,18 @@ public class UserAddedPointEventListener implements ValueEventListener, ChildEve
         return userPlaces;
     }
 
+    public static String dump(HashMap<String, UserPlaceMisc> userPlaces) {
+        String ret="";
+        if (userPlaces != null) {
+            Iterator it = userPlaces.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pair = (Map.Entry) it.next();
+                ret += (pair.getKey() + " = " + (UserPlaceMisc) pair.getValue() + "\n");
+            }
+        }
+        return ret;
+    }
+
     @Override
     public void onCancelled(FirebaseError firebaseError) {}
 
@@ -113,7 +132,25 @@ public class UserAddedPointEventListener implements ValueEventListener, ChildEve
     public void onChildChanged(DataSnapshot dataSnapshot, String s) {}
 
     @Override
-    public void onChildRemoved(DataSnapshot dataSnapshot) {}
+    public void onChildRemoved(DataSnapshot dataSnapshot) {
+        // remove point from map
+        Log.d(TAG, "onChildRemoved: dataSnap=" + dataSnapshot);
+        //for (DataSnapshot child: dataSnapshot.getChildren()) {
+            userPlace = dataSnapshot.getValue(UserPlace.class);
+            Log.d(TAG, "onChildRemoved: userPlace=" + userPlace);
+            removeUserPlace(userPlace);
+        //}
+    }
+
+    private void removeUserPlace(UserPlace userPlace) {
+        Log.d(TAG, "removeUserPlace: userPlace=" + userPlace);
+        if (userPlaces.get(userPlace.getId()) != null) {
+            userPlaces.get(userPlace.getId()).marker.remove();  // from map
+            userPlaces.remove(userPlace.getId());  // from array
+        } else {
+            Log.e(TAG, "removeUserPlace can not found on array");
+        }
+    }
 
     @Override
     public void onChildMoved(DataSnapshot dataSnapshot, String s) {}

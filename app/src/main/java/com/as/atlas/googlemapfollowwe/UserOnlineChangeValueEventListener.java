@@ -113,6 +113,7 @@ public class UserOnlineChangeValueEventListener implements ValueEventListener, C
                 User user= userMisc.user;
                 LatLng latLng = new LatLng(user.getLat(), user.getLng());
                 userMisc.marker.setPosition(latLng);
+                userMisc.marker.setSnippet(latLng.toString());
             }
         }
 

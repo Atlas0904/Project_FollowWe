@@ -284,6 +284,9 @@ public class MapsActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Fix issue: ou need to set the Android context using Firebase.setAndroidContext() before using Firebase.
+        Firebase.setAndroidContext(this);
+
 
         if (null != savedInstanceState) {
             double[] lats = savedInstanceState.getDoubleArray(EXTRA_LATS);
@@ -395,7 +398,7 @@ public class MapsActivity extends AppCompatActivity
 
 
         // Firebase section
-        Firebase.setAndroidContext(this);
+
         mFirebase = new Firebase(URL_FIREBASE);
 
         createUser();
@@ -830,10 +833,12 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onMapClick(final LatLng latLng) {
         Log.d(TAG, "onMapClick latLng:" + latLng);
+        
         float zoom = googleMap.getCameraPosition().zoom;
         Log.d(TAG, "addMarkerToList: latLng=" + latLng + " zoom=" + zoom);
         if (zoom < LEVEL_ZOOM_IN) {
             Toast.makeText(this, "Zoom in before add marker!", Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "onMapClick return zoom=" + zoom);
             return;
         }
         textViewClickedLatLng.setText(latLng.toString());
@@ -863,6 +868,8 @@ public class MapsActivity extends AppCompatActivity
 //                Message msgDist = mUIHandler.obtainMessage(mUIHandler.EVENT_UI_UPDATE_DISTANCE);
 //                msgDist.arg1 = place.duration;
 //                mUIHandler.sendMessage(msgDist);
+
+
 
                 String placeId = Utils.getPlaceIdFromGoogleMapAPI(latLng, 500, "restaurant", "cruise");
                 if ("".equals(placeId)) {
@@ -917,14 +924,23 @@ public class MapsActivity extends AppCompatActivity
 
     private void addMessageToInfoWindow(Marker marker, String msg) {
         LatLng latLng = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
-        UserPlace userPlace = userAddedPointEventListener.getUserPlaces().get(UserPlace.getId(latLng)).userPlace;
-        userPlace.userMessages.add(new UserMessage(currentUserInfo.name, msg, Utils.getCurrentTimeStamp()));
-        userAddedPointEventListener.setValue(userPlace);
+
+        if (userAddedPointEventListener.getUserPlaces() != null && userAddedPointEventListener.getUserPlaces().get(UserPlace.getId(latLng)) != null) {
+            UserPlace userPlace = userAddedPointEventListener.getUserPlaces().get(UserPlace.getId(latLng)).userPlace;
+            userPlace.userMessages.add(new UserMessage(currentUserInfo.name, msg, Utils.getCurrentTimeStamp()));
+            userAddedPointEventListener.setValue(userPlace);
+        } else {  // suppose be user icon
+            String welcomeMsg  = "Hi, I am " + marker.getTitle();
+            Toast.makeText(this, welcomeMsg, Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "addMessageToInfoWindow for user");
+        }
         marker.hideInfoWindow();
     }
 
     @Override
     public void onInfoWindowLongClick(Marker marker) {
         marker.remove();
+        LatLng latLng = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
+        UserAddedPointEventListener.removeValue(latLng);
     }
 }

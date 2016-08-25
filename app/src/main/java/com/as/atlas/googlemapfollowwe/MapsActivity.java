@@ -779,10 +779,17 @@ public class MapsActivity extends AppCompatActivity
         if (line != null) line.remove();
 
         PolylineOptions points = new PolylineOptions();
-        for (LatLng pt: userRoute) {
-            points.add(pt);
+        for (int i = 0; i < userRoute.size(); i++) {
+            int color = Color.WHITE - i * 16;
+            line = googleMap.addPolyline(points.add(userRoute.get(i)).width(20).color(color));
+            Log.d(TAG, "onLocationChanged: i=" +i + " pt=" + userRoute.get(i) + " color=" + color);
         }
-        line = googleMap.addPolyline(points.width(30).color(Color.RED));
+
+        // Mark first
+//        for (LatLng pt: userRoute) {
+//            line = googleMap.addPolyline(points.add(pt).width(20).color(Color.RED+1));
+//        }
+//        //line = googleMap.addPolyline(points.width(30).color(Color.RED));
 
 //        Polyline line = googleMap.addPolyline(new PolylineOptions()
 //                .add(fromLoc, toLoc)
@@ -833,7 +840,7 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onMapClick(final LatLng latLng) {
         Log.d(TAG, "onMapClick latLng:" + latLng);
-        
+
         float zoom = googleMap.getCameraPosition().zoom;
         Log.d(TAG, "addMarkerToList: latLng=" + latLng + " zoom=" + zoom);
         if (zoom < LEVEL_ZOOM_IN) {

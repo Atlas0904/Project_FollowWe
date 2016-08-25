@@ -4,8 +4,7 @@ import android.app.Service;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
+
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -16,6 +15,7 @@ import android.util.Log;
 import com.firebase.client.Firebase;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
@@ -60,6 +60,7 @@ public class LocationUpdateService extends Service implements
                     .addConnectionCallbacks(this)
                     .addOnConnectionFailedListener(this)
                     .build();
+            mGoogleApiClient.connect();
 
             ref = root.child(NodeDefineOnFirebase.NODE_ROOM_NO).child(String.valueOf(roomNo)).child(NodeDefineOnFirebase.NODE_USER);
             Log.d(TAG, "onStartCommand: roomNo=" + roomNo + " user=" + user + " ref=" + ref);
@@ -84,6 +85,7 @@ public class LocationUpdateService extends Service implements
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
+        Log.d(TAG, "onConnected: bundle=" + bundle);
         mLocationRequest = LocationRequest.create();
         mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         mLocationRequest.setInterval(1000); // Update location every second
@@ -96,10 +98,16 @@ public class LocationUpdateService extends Service implements
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
+            Log.d(TAG, "onConnected: permission denied");
             return;
         }
+
         LocationServices.FusedLocationApi.requestLocationUpdates(
-                mGoogleApiClient, mLocationRequest, (com.google.android.gms.location.LocationListener) this);
+                mGoogleApiClient, mLocationRequest, this);
+
+        Location currentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        Log.d(TAG, "onConnected: currentLocation=" + currentLocation);
+
     }
 
     @Override
@@ -115,21 +123,6 @@ public class LocationUpdateService extends Service implements
             user.lng = location.getLongitude();
             setUser(user);
         }
-    }
-
-    @Override
-    public void onStatusChanged(String provider, int status, Bundle extras) {
-
-    }
-
-    @Override
-    public void onProviderEnabled(String provider) {
-
-    }
-
-    @Override
-    public void onProviderDisabled(String provider) {
-
     }
 
     @Override

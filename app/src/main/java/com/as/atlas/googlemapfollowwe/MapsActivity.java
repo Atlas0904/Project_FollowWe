@@ -88,8 +88,8 @@ public class MapsActivity extends AppCompatActivity
     private static final float LEVEL_ZOOM_IN = 15.5f;
     private static final String EXTRA_LATS = "extra_lats";
     private static final String EXTRA_LNGS = "extra_lngs";
+    private static final int REQUSET_ACCESS_FINE_LOCATION = 1;
     private static boolean mLockedOnUserView = false;
-    
 
 
     public final String URL_FIREBASE = "https://followwe-7f0e8.firebaseio.com/";
@@ -103,7 +103,6 @@ public class MapsActivity extends AppCompatActivity
     private TextView textViewDestination;
     public TextView textViewDuration;
     public TextView textViewDistance;
-
 
 
     public static final String FLOATING_ACTION_BUTTON_DESTINATION = "Dest";
@@ -171,7 +170,6 @@ public class MapsActivity extends AppCompatActivity
     }
 
 
-
     //Local variable
     public class UIHandler extends Handler {
         public final static int EVENT_UI_UPDATE_DURATION = 1;
@@ -189,17 +187,18 @@ public class MapsActivity extends AppCompatActivity
             switch (msg.what) {
                 case EVENT_UI_UPDATE_DISTANCE:
                     TextView textView = (TextView) mapsActivity.findViewById(R.id.textViewDistance);
-                    textView.setText((int)msg.arg1);
+                    textView.setText((int) msg.arg1);
                     break;
                 case EVENT_UI_UPDATE_DURATION:
                     TextView textView1 = (TextView) mapsActivity.findViewById(R.id.textViewDuration);
-                    textView1.setText((int)msg.arg1);
+                    textView1.setText((int) msg.arg1);
                     break;
                 default:
                     break;
             }
         }
     }
+
     protected UIHandler mUIHandler;
 
     public final static int EVENT_RETURN_SEARCH_ADDRESS_RESULT = 1;
@@ -240,9 +239,9 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        Log.d(TAG, "onOptionsItemSelected: id=" +id);
+        Log.d(TAG, "onOptionsItemSelected: id=" + id);
 
-        switch (id){
+        switch (id) {
             case android.R.id.home:
                 Log.d(TAG, "onOptionsItemSelected: back to home");
 //                Intent intent = new Intent(this, LoginActivity.class);
@@ -320,7 +319,7 @@ public class MapsActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 //if ("".equals(currentUserInfo.destination)) {
-                    sendDestionationToServer(currentUserInfo.destination);
+                sendDestionationToServer(currentUserInfo.destination);
                 //}
             }
         });
@@ -336,7 +335,7 @@ public class MapsActivity extends AppCompatActivity
         textViewDistance = (TextView) findViewById(R.id.textViewDistance);
 
 
-        final FloatingActionButton fab = (FloatingActionButton)findViewById(R.id.fab);
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
         fab.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.darkgreen));
         fab.setOnClickListener(new View.OnClickListener() {
@@ -371,8 +370,6 @@ public class MapsActivity extends AppCompatActivity
                 return false;
             }
         });
-
-
 
 
         configGoogleApiClient();
@@ -515,9 +512,6 @@ public class MapsActivity extends AppCompatActivity
         mFirebaseUserInfo.addValueEventListener(userInfoValueEventListener);
 
 
-
-
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
@@ -525,7 +519,7 @@ public class MapsActivity extends AppCompatActivity
             //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
+            // for ActivityCompat#requestPermisfsions for more details.
             Log.d(TAG, "Permission check for setMyLocationEnable");
             return;
         }
@@ -661,9 +655,13 @@ public class MapsActivity extends AppCompatActivity
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        log("onConnected Bundle: " + bundle);
+        Log.d(TAG, "onConnected Bundle: " + bundle);
+        onMapConnectedToDo();
+    }
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+    private void onMapConnectedToDo() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -671,10 +669,8 @@ public class MapsActivity extends AppCompatActivity
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 0);
-            }
-            Log.d(TAG, "onConnected: permission denied.");
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                    REQUSET_ACCESS_FINE_LOCATION);
             return;
         }
 
@@ -688,10 +684,24 @@ public class MapsActivity extends AppCompatActivity
             LatLng latLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());   // 有可能 Geany 一開始給錯  導致沒有路線圖
 //            GoogleMapEventHandler.addMarker(latLng, latLng.toString(), BitmapDescriptorFactory.HUE_VIOLET);
 //            GoogleMapEventHandler.moveCamera(latLng, 16);
-            Toast.makeText(this, "Google map connected. Position: " + latLng , Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Google map connected. Position: " + latLng, Toast.LENGTH_SHORT).show();
             GoogleMapEventHandler.moveCamera(latLng, 16);
         }
+    }
 
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUSET_ACCESS_FINE_LOCATION) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Log.d(TAG, "onRequestPermissionsResult: permission granted");
+                onMapConnectedToDo();
+            } else {
+                // permission denied, boo! Disable the
+                // functionality that depends on this permission.
+                Log.d(TAG, "onRequestPermissionsResult: permission denied");
+            }
+        }
     }
 
     private void createLocationRequest() {    // 一直 update

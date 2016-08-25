@@ -50,10 +50,10 @@
     <CheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sync"
-        android:id="@+id/checkBoxSyncPlace"
+        android:text="Camera focus"
+        android:id="@+id/checkBoxCameraFocus"
         android:checked="false"
-        android:layout_above="@+id/textViewClickedLatLng"
+        android:layout_alignBottom="@+id/textViewClickedLatLng"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
@@ -136,6 +136,17 @@
         android:layout_alignTop="@+id/textViewLongitude"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Background Sync"
+        android:id="@+id/checkBoxBackgroundSync"
+        android:checked="false"
+        android:layout_above="@+id/textViewClickedLatLng"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginBottom="6dp" />
     <!--android:src="@mipmap/icon_google_map_follow_we" />-->
 
 </RelativeLayout>

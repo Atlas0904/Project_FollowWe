@@ -2,10 +2,12 @@ package com.as.atlas.googlemapfollowwe;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.io.Serializable;
+
 /**
  * Created by atlas on 2016/7/13.
  */
-public class User {
+public class User implements Serializable {
 
     public String name;
     public double lat;

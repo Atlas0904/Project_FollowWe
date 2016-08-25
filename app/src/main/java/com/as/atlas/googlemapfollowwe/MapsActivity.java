@@ -8,7 +8,6 @@ import android.graphics.Color;
 import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -41,20 +40,17 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
-import com.firebase.client.core.Context;
 import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceBuffer;
 import com.google.android.gms.location.places.Places;
-import com.google.android.gms.location.places.ui.PlaceAutocomplete;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -68,7 +64,6 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import static android.widget.Toast.LENGTH_LONG;
 
@@ -89,10 +84,14 @@ public class MapsActivity extends AppCompatActivity
     private static final String EXTRA_LATS = "extra_lats";
     private static final String EXTRA_LNGS = "extra_lngs";
     private static final int REQUSET_ACCESS_FINE_LOCATION = 1;
+
+    public static final String EXTRA_USER = "extra_current_user_info";
+    public static final String EXTRA_ROOM_NO = "extra_room_no";
     private static boolean mLockedOnUserView = false;
+    private static boolean mBackgroundLocationSync = false;
 
 
-    public final String URL_FIREBASE = "https://followwe-7f0e8.firebaseio.com/";
+    public final static String URL_FIREBASE = "https://followwe-7f0e8.firebaseio.com/";
 
 
     private Button buttonSend;
@@ -107,7 +106,8 @@ public class MapsActivity extends AppCompatActivity
 
     public static final String FLOATING_ACTION_BUTTON_DESTINATION = "Dest";
 
-    private CheckBox checkBox;
+    private CheckBox checkboxCameraFocus;
+    private CheckBox checkBoxBackgroundSync;
     private GoogleApiClient googleApiClient;
 
     // Location請求物件
@@ -308,11 +308,21 @@ public class MapsActivity extends AppCompatActivity
 
         mapFragment.getMapAsync(this);
 
-        checkBox = (CheckBox) findViewById(R.id.checkBoxSyncPlace);
-        checkBox.setOnClickListener(new View.OnClickListener() {
+        checkboxCameraFocus = (CheckBox) findViewById(R.id.checkBoxCameraFocus);
+        checkboxCameraFocus.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 mLockedOnUserView = ((CheckBox) v).isChecked();
+            }
+        });
+
+        checkBoxBackgroundSync = (CheckBox) findViewById(R.id.checkBoxBackgroundSync);
+        checkBoxBackgroundSync.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mBackgroundLocationSync = ((CheckBox) v).isChecked();
+                if (mBackgroundLocationSync) startLocationUpdateServices();
+                else stopLocationUpdateServices();
             }
         });
 
@@ -393,6 +403,22 @@ public class MapsActivity extends AppCompatActivity
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
         mUIHandler = new UIHandler(MapsActivity.this);
+
+        if (mBackgroundLocationSync) startLocationUpdateServices();
+    }
+
+    public void startLocationUpdateServices() {
+        Intent intent = new Intent(this, LocationUpdateService.class);
+        intent.putExtra(EXTRA_ROOM_NO, currentUserInfo.roomNo);
+        intent.putExtra(EXTRA_USER, new User(currentUserInfo.name, currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude, currentUserInfo.iconNo));
+        startService(intent);
+    }
+
+    public void stopLocationUpdateServices() {
+        Intent intent = new Intent(this, LocationUpdateService.class);
+        intent.putExtra(EXTRA_ROOM_NO, currentUserInfo.roomNo);
+        intent.putExtra(EXTRA_USER, new User(currentUserInfo.name, currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude, currentUserInfo.iconNo));
+        stopService(intent);
     }
 
     private void navigateToDestination(AbstractRouting.TravelMode method, LatLng start, LatLng end) {

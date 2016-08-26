@@ -40,7 +40,8 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
         this.context = context;
         LayoutInflater layoutInflater = LayoutInflater.from(context);
         view = layoutInflater.inflate(R.layout.map_info_window_layout, null);
-        view.setLayoutParams(new RelativeLayout.LayoutParams(INFO_WINDOW_SIZE, RelativeLayout.LayoutParams.WRAP_CONTENT));
+
+        //view.setLayoutParams(new RelativeLayout.LayoutParams(INFO_WINDOW_SIZE, RelativeLayout.LayoutParams.WRAP_CONTENT));
         this.userAddedPointEventListener = userAddedPointEventListener;
 
         textViewUserComment = (TextView) view.findViewById(R.id.textViewInfoWinUserComment);

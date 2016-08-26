@@ -294,9 +294,13 @@ public class MapsActivity extends AppCompatActivity
             if (lats != null && lngs != null) {
                 for (int i = 0; i < lats.length; i++) {
                     if (userRoute == null) userRoute = new ArrayList<LatLng>();
-                    userRoute.add(new LatLng(lats[i], lngs[i]));
+                    LatLng latLng = new LatLng(lats[i], lngs[i]);
+                    userRoute.add(latLng);
+                    Log.d(TAG, "onCreate: savedInstanceState -> i=" + i + " latLng=" + latLng);
                 }
             }
+        } else {
+            Log.d(TAG, "savedInstanceState == null");
         }
 
         setContentView(R.layout.activity_maps);
@@ -725,7 +729,7 @@ public class MapsActivity extends AppCompatActivity
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUSET_ACCESS_FINE_LOCATION) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            if (grantResults.length != 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Log.d(TAG, "onRequestPermissionsResult: permission granted");
                 onMapConnectedToDo();
             } else {
@@ -773,29 +777,21 @@ public class MapsActivity extends AppCompatActivity
         LatLng fromLoc = new LatLng(currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude);
         LatLng toLoc = new LatLng(location.getLatitude(), location.getLongitude());
 
-        if (userRoute == null)  userRoute = new ArrayList<>();
+        if (fromLoc.equals(toLoc)) {
+            Log.d(TAG, "location unchange");
+            return;
+        }
+
+        if (userRoute == null) userRoute = new ArrayList<>();
         userRoute.add(toLoc);
 
         if (line != null) line.remove();
 
         PolylineOptions points = new PolylineOptions();
-        for (int i = 0; i < userRoute.size(); i++) {
-            int color = Color.WHITE - i * 16;
-            line = googleMap.addPolyline(points.add(userRoute.get(i)).width(20).color(color));
-            Log.d(TAG, "onLocationChanged: i=" +i + " pt=" + userRoute.get(i) + " color=" + color);
+        for (LatLng pt: userRoute) {
+            points.add(pt);
         }
-
-        // Mark first
-//        for (LatLng pt: userRoute) {
-//            line = googleMap.addPolyline(points.add(pt).width(20).color(Color.RED+1));
-//        }
-//        //line = googleMap.addPolyline(points.width(30).color(Color.RED));
-
-//        Polyline line = googleMap.addPolyline(new PolylineOptions()
-//                .add(fromLoc, toLoc)
-//                .width(30)
-//                .color(Color.RED));
-
+        line = googleMap.addPolyline(points.width(30).color(Color.BLUE));
         userOnlineChangeValueEventListener.updateCurrentUserLocation(currentUserInfo, location);
 
         if (mLockedOnUserView) {

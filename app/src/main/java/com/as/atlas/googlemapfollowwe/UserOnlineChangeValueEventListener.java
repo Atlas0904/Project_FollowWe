@@ -8,6 +8,7 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
@@ -28,7 +29,7 @@ public class UserOnlineChangeValueEventListener implements ValueEventListener, C
     private Firebase root;
     private Firebase ref;
     private CurrentUserInfo currentUserInfo;
-    private BitmapDescriptor defaultIcon = BitmapDescriptorFactory.fromResource(R.mipmap.icon_user_boy);
+//    private BitmapDescriptor defaultIcon = BitmapDescriptorFactory.fromResource(R.mipmap.icon_user_boy);
 
     HashMap<String, UserMisc> users;
 

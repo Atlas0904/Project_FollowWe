@@ -6,6 +6,10 @@
         android:title="Clear Points" />
     <item android:id="@+id/menu_sync_to_cloud"
         android:title="Sync to Cloud" />
+    <item android:id="@+id/menu_save_route_to_pref"
+        android:title="Save route (Pref)" />
+    <item android:id="@+id/menu_load_route_from_pref"
+        android:title="Load route (Pref)" />
     <item android:id="@+id/menu_show_info"
         android:title="Information" />
 </menu>

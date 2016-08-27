@@ -65,7 +65,8 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
         // Put into constructor
         LatLng latLng = marker.getPosition();
         String id =UserPlace.getId(latLng);
-        if (userAddedPointEventListener.getUserPlaces() != null && userAddedPointEventListener.getUserPlaces().get(id) != null) {
+        if (userAddedPointEventListener.getUserPlaces() != null &&
+                userAddedPointEventListener.getUserPlaces().get(id) != null) {
             UserPlace userPlace = userAddedPointEventListener.getUserPlaces().get(id).userPlace;
 
             textViewUserComment.setText(userPlace.comment + " by " + userPlace.markedby);
@@ -73,6 +74,7 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
             textViewAddr.setText(userPlace.addr);
             textViewStar.setText(String.valueOf(userPlace.star));
 
+            Log.d(TAG, "getInfoContents: userPlace=" + userPlace);
             listAdapter = new ChatMessageAdapter(context, userPlace);
             listViewChatMsg.setAdapter(listAdapter);
         } else {
@@ -95,11 +97,13 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
         @Override
         public int getCount() {
+            Log.d(TAG, "ChatMessageAdapter: getCount-> userPlace=" + userPlace);
             return userPlace.userMessages.size();
         }
 
         @Override
         public Object getItem(int pos) {
+            Log.d(TAG, "ChatMessageAdapter: getItem-> pos" + pos + " userPlace=" + userPlace);
             return userPlace.userMessages.get(pos);
         }
 

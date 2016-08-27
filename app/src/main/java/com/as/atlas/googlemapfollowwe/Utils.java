@@ -266,4 +266,40 @@ public class Utils {
         return strDate;
     }
 
+    public static String getReadableTime(Date d) {
+        SimpleDateFormat sdfDate = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
+        return sdfDate.format(d);
+    }
+
+    public static long getTimeDiffMs(Date d1, Date d2) {
+        return d2.getTime() - d1.getTime();
+    }
+
+    public static long getTimeDiffSec(Date d1, Date d2) {
+        return (getTimeDiffMs(d1,d2)/1000) % 60;
+    }
+
+    // Copy from http://fecbob.pixnet.net/blog/post/43546822-%5Bjava%5D-%E7%B6%93%E7%B7%AF%E5%BA%A6%E8%B7%9D%E9%9B%A2%E8%A8%88%E7%AE%97
+    private static double rad(double d) {
+        return d * Math.PI / 180.0;
+    }
+
+    public static double getDistance(LatLng p1, LatLng p2) {
+        if (p1 == null || p2 == null)  return 0;
+        return getDistance(p1.latitude, p1.longitude, p2.latitude, p2.longitude);
+    }
+
+    public static double getDistance(double lat1, double lng1, double lat2, double lng2) {
+        double EARTH_RADIUS = 6378137;
+        double radLat1 = rad(lat1);
+        double radLat2 = rad(lat2);
+        double a = rad(lat1) - rad(lat2);
+        double b = rad(lng1) - rad(lng2);
+        double s = 2 * Math.asin(Math.sqrt(Math.pow(Math.sin(a/2), 2)
+                + Math.cos(radLat1) * Math.cos(radLat2) * Math.pow(Math.sin(b / 2), 2)));
+        s = s * EARTH_RADIUS;
+        s = Math.round(s * 10000) / 10000;
+        return s;
+    }
+
 }

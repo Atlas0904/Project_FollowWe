@@ -6,8 +6,10 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.List;
 
@@ -29,16 +31,20 @@ public class PrefUtil<T> {
     }
 
     public void saveToSharePref(T t, String PREF_NAME) {
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithModifiers(Modifier.TRANSIENT)  // No use
+                .create();
         String json = gson.toJson(t);
-        Log.d(TAG,"jsonUserMarkers = " + json);
+        Log.d(TAG,"json = " + json);
 
         prefsEditor.putString(PREF_NAME, json);
         prefsEditor.commit();
     }
 
     public T loadFromPref(String PREF_NAME) {
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder()
+                .excludeFieldsWithModifiers(Modifier.TRANSIENT)
+                .create();
         String json = appSharedPrefs.getString(PREF_NAME, "");
 
         Type type = new TypeToken<List<T>>(){}.getType();

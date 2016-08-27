@@ -6,6 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.as.atlas.googlemapfollowwe"
+
         minSdkVersion 11
 //        minSdkVersion 22
         targetSdkVersion 23
@@ -22,6 +23,9 @@ android {
         }
     }
 
+    dexOptions {
+        javaMaxHeapSize "8g"
+    }
 }
 
 dependencies {

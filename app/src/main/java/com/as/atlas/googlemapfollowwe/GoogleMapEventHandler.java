@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -54,6 +55,7 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
                         .zoom(scale)
                         .build();
 
+        Toast.makeText(context, "Google map level to" + scale, Toast.LENGTH_SHORT).show();
         googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 //        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, scale));
     }

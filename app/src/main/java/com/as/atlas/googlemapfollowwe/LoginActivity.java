@@ -16,7 +16,6 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import java.lang.reflect.Type;
-import java.util.List;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -70,9 +69,9 @@ public class LoginActivity extends AppCompatActivity {
                 saveCurrentUserLoginInfoToSharePref();
 
                 Intent intent = new Intent(LoginActivity.this, MapsActivity.class);
-                intent.putExtra(CurrentUserInfo.NAME, currentUserInfo.name);
-                intent.putExtra(CurrentUserInfo.ICON_NO, currentUserInfo.iconNo);
-                intent.putExtra(CurrentUserInfo.NUMBER_ROOM, currentUserInfo.roomNo);
+                intent.putExtra(CurrentUserInfo.EXTRA_NAME, currentUserInfo.name);
+                intent.putExtra(CurrentUserInfo.EXTRA_ICON_NO, currentUserInfo.iconNo);
+                intent.putExtra(CurrentUserInfo.EXTRA_NUMBER_ROOM, currentUserInfo.roomNo);
                 startActivity(intent);
                 Log.d(TAG, "startActivityForResult: name=" + editTextName.getText().toString());
             }

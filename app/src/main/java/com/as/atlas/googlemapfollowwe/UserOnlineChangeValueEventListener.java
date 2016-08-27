@@ -44,7 +44,7 @@ public class UserOnlineChangeValueEventListener implements ValueEventListener, C
     }
 
     public void updateCurrentUserLocation(CurrentUserInfo currentUserInfo, Location location) {
-        currentUserInfo.latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
         User user = new User(currentUserInfo.name, currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude, currentUserInfo.iconNo);
         ref.child(currentUserInfo.name).setValue(user);
     }

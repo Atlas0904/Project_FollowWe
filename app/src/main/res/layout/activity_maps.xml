@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto" >
 
 
 <!--<AutoCompleteTextView-->
@@ -24,7 +24,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.as.atlas.googlemapfollowwe.MapsActivity"
-    android:layout_alignParentTop="true" />
+    android:layout_alignParentLeft="true"
+    android:layout_alignParentStart="true" />
 
     <Button
         android:layout_width="wrap_content"
@@ -39,32 +40,19 @@
         android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignBottom="@+id/buttonSend"
-        android:layout_alignRight="@+id/buttonSend"
-        android:layout_alignEnd="@+id/buttonSend"
-        xmlns:android="http://schemas.android.com/apk/res/android" />
-
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Camera focus"
-        android:id="@+id/checkBoxCameraFocus"
-        android:checked="false"
-        android:layout_alignBottom="@+id/textViewClickedLatLng"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
+
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Latitude"
         android:id="@+id/textViewLatitude"
-        android:layout_below="@+id/buttonSend"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignEnd="@+id/textViewLongitude"
+        android:layout_below="@+id/buttonSend" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -80,9 +68,7 @@
         android:layout_height="wrap_content"
         android:text="Address"
         android:id="@+id/textViewAddress"
-        android:layout_alignParentBottom="true"
-        android:layout_alignRight="@+id/textViewClickedLatLng"
-        android:layout_alignEnd="@+id/textViewClickedLatLng" />
+        android:layout_above="@+id/checkBoxBackgroundSync" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -90,34 +76,32 @@
         android:text="Clicked LatLng"
         android:id="@+id/textViewClickedLatLng"
         android:layout_above="@+id/textViewAddress"
-        android:layout_alignRight="@+id/fab"
-        android:layout_alignEnd="@+id/fab" />
+        android:layout_alignLeft="@+id/textViewAddress"
+        android:layout_alignStart="@+id/textViewAddress" />
 
-    <android.support.design.widget.FloatingActionButton
-        android:id="@+id/fab"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:clickable="true"
+    <!--<android.support.design.widget.FloatingActionButton-->
+        <!--android:id="@+id/fab"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_gravity="bottom"-->
+        <!--android:clickable="true"-->
 
-        android:src="@drawable/ic_media_play"
+        <!--android:src="@drawable/ic_media_play"-->
 
-        android:layout_above="@+id/textViewClickedLatLng"
-        android:layout_alignLeft="@+id/textViewLongitude"
-        android:layout_alignStart="@+id/textViewLongitude"
-        android:layout_marginRight="16dp" />
+        <!--android:layout_above="@+id/textViewClickedLatLng"-->
+        <!--android:layout_alignLeft="@+id/textViewLongitude"-->
+        <!--android:layout_alignStart="@+id/textViewLongitude"-->
+        <!--android:layout_marginRight="16dp" />-->
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/textViewDestination"
         android:gravity="center"
-        android:text="Dest"
-        android:layout_above="@+id/fab"
-        android:layout_alignRight="@+id/fab"
-        android:layout_alignEnd="@+id/fab"
-        android:layout_alignLeft="@+id/fab"
-        android:layout_alignStart="@+id/fab" />
+        android:text="Room Destination"
+        android:layout_below="@+id/textViewLongitude"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -133,7 +117,17 @@
         android:layout_height="wrap_content"
         android:text="distance"
         android:id="@+id/textViewDistance"
-        android:layout_alignTop="@+id/textViewLongitude"
+        android:layout_below="@+id/textViewDuration"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Camera focus"
+        android:id="@+id/checkBoxCameraFocus"
+        android:checked="false"
+        android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
@@ -143,10 +137,27 @@
         android:text="Background Sync"
         android:id="@+id/checkBoxBackgroundSync"
         android:checked="false"
-        android:layout_above="@+id/textViewClickedLatLng"
+        android:layout_above="@+id/checkBoxCameraFocus"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="6dp" />
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="0 m"
+        android:id="@+id/textViewAccMile"
+        android:layout_above="@+id/textViewClickedLatLng"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="累積里程"
+        android:id="@+id/textView5"
+        android:layout_above="@+id/textViewAccMile"
+        android:layout_centerHorizontal="true" />
     <!--android:src="@mipmap/icon_google_map_follow_we" />-->
 
 </RelativeLayout>

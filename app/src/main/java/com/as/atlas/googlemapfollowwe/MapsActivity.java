@@ -14,21 +14,22 @@ import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -67,7 +68,7 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Date;
 import java.util.Locale;
 
 import static android.widget.Toast.LENGTH_LONG;
@@ -80,7 +81,8 @@ public class MapsActivity extends AppCompatActivity
         OnMapReadyCallback,
         LocationListener,
         GoogleMap.OnInfoWindowClickListener,
-        GoogleMap.OnInfoWindowLongClickListener, RoutingListener {
+        GoogleMap.OnInfoWindowLongClickListener, RoutingListener,
+        NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = MapsActivity.class.getSimpleName();
     private static final long LOCATION_REQUEST_INTERVAL_MS = 500;
@@ -92,12 +94,12 @@ public class MapsActivity extends AppCompatActivity
 
     public static final String EXTRA_USER = "extra_current_user_info";
     public static final String EXTRA_ROOM_NO = "extra_room_no";
+    private static final String EXTRA_CURRENT_USER_INFO = "extra_current_user_info";
     private static boolean mLockedOnUserView = false;
     private static boolean mBackgroundLocationSync = false;
 
 
     public final static String URL_FIREBASE = "https://followwe-7f0e8.firebaseio.com/";
-
 
     private Button buttonSend;
     private TextView textViewLatitude;
@@ -107,7 +109,7 @@ public class MapsActivity extends AppCompatActivity
     private TextView textViewDestination;
     public TextView textViewDuration;
     public TextView textViewDistance;
-
+    private TextView textViewAccMile;
 
     // Navigation setion start
     private DrawerLayout drawerLayout;
@@ -144,6 +146,8 @@ public class MapsActivity extends AppCompatActivity
 
     private ValueEventListener mOnlineChangeListener;
     private ArrayList<Polyline> polylines;
+
+    private PrefUtil<UserRoute> preUtilUserRoute;
 
     @Override
     public void onRoutingFailure(RouteException e) {
@@ -183,6 +187,31 @@ public class MapsActivity extends AppCompatActivity
 
     }
 
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+        if (id == R.id.nav_camera) {
+            // Handle the camera action
+            GoogleMapEventHandler.moveCamera(currentUserInfo.latLng, 12);
+        } else if (id == R.id.nav_gallery) {
+
+        } else if (id == R.id.nav_slideshow) {
+
+        } else if (id == R.id.nav_manage) {
+
+        } else if (id == R.id.nav_share) {
+
+        } else if (id == R.id.nav_send) {
+
+        }
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
 
     //Local variable
     public class UIHandler extends Handler {
@@ -242,7 +271,6 @@ public class MapsActivity extends AppCompatActivity
     // Note: remember to add package in Google console
     // https://console.developers.google.com/apis/credentials?project=at-shareyourlocation
 
-    List<LatLng> userRoute;
     Polyline line;
 
     @Override
@@ -274,6 +302,13 @@ public class MapsActivity extends AppCompatActivity
                 break;
             case R.id.menu_sync_to_cloud:
                 break;
+            case R.id.menu_save_route_to_pref:
+                preUtilUserRoute.saveToSharePref(currentUserInfo.userRoute, UserPlace.class.getSimpleName());
+                break;
+            case R.id.menu_load_route_from_pref:
+                UserRoute userRoute = preUtilUserRoute.loadFromPref(UserPlace.class.getSimpleName());
+                currentUserInfo.userRoute = userRoute;
+                break;
             case R.id.menu_show_info:
                 showInfo();
                 break;
@@ -297,36 +332,62 @@ public class MapsActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        restoreSaveInstanceState(savedInstanceState);
 
         // Fix issue: ou need to set the Android context using Firebase.setAndroidContext() before using Firebase.
         Firebase.setAndroidContext(this);
 
-
-        if (null != savedInstanceState) {
-            double[] lats = savedInstanceState.getDoubleArray(EXTRA_LATS);
-            double[] lngs = savedInstanceState.getDoubleArray(EXTRA_LNGS);
-            if (lats != null && lngs != null) {
-                for (int i = 0; i < lats.length; i++) {
-                    if (userRoute == null) userRoute = new ArrayList<LatLng>();
-                    LatLng latLng = new LatLng(lats[i], lngs[i]);
-                    userRoute.add(latLng);
-                    Log.d(TAG, "onCreate: savedInstanceState -> i=" + i + " latLng=" + latLng);
-                }
-            }
-        } else {
-            Log.d(TAG, "savedInstanceState == null");
-        }
-
         // Navigation setion start
-        setContentView(R.layout.activity_maps);
-        //setContentView(R.layout.navigation_drawer_menu);
+        //setContentView(R.layout.activity_maps);
+        setContentView(R.layout.navigation_all);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
         // Navigation setion end
 
+        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.darkgreen));
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                TextView textView = (TextView) MapsActivity.this.findViewById(R.id.textViewDestination);
+                if ("".equals(textView.getText().toString()) || FLOATING_ACTION_BUTTON_DESTINATION.equals(textView.getText().toString())) {
+                    GoogleMapEventHandler.moveCamera(currentUserInfo.latLng, 16);
+                    Toast.makeText(MapsActivity.this, "Synced", Toast.LENGTH_SHORT).show();
+                } else {
+                    fab.setBackgroundTintList(ContextCompat.getColorStateList(MapsActivity.this, R.color.darkgreen));
+                    textView.setText(FLOATING_ACTION_BUTTON_DESTINATION);
 
+                    com.as.atlas.googlemapfollowwe.Place destination = destinationValueEventListener.getPlace();
+                    LatLng latLng = new LatLng(destination.lat, destination.lng);
+                    // add Marker on map
+                    GoogleMapEventHandler.addMarker(latLng, destination.address, BitmapDescriptorFactory.HUE_YELLOW);
+                    GoogleMapEventHandler.moveCamera(latLng, 16);
+                    Log.d(TAG, "fab.setOnClickListener: latLng=" + latLng);
 
-        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
-        getSupportActionBar().setCustomView(R.layout.abs_layout);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                    navigateToDestination(AbstractRouting.TravelMode.WALKING, currentUserInfo.latLng, latLng);
+                }
+            }
+        });
+
+        fab.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                TextView textView = (TextView) MapsActivity.this.findViewById(R.id.textViewDestination);
+                fab.setBackgroundTintList(ContextCompat.getColorStateList(MapsActivity.this, R.color.darkgreen));
+                textView.setText(FLOATING_ACTION_BUTTON_DESTINATION);
+                return false;
+            }
+        });
+
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
+
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -371,43 +432,10 @@ public class MapsActivity extends AppCompatActivity
 
         textViewDuration = (TextView) findViewById(R.id.textViewDuration);
         textViewDistance = (TextView) findViewById(R.id.textViewDistance);
+        textViewAccMile = (TextView) findViewById(R.id.textViewAccMile);
 
 
-        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 
-        fab.setBackgroundTintList(ContextCompat.getColorStateList(this, R.color.darkgreen));
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                TextView textView = (TextView) MapsActivity.this.findViewById(R.id.textViewDestination);
-                if ("".equals(textView.getText().toString()) || FLOATING_ACTION_BUTTON_DESTINATION.equals(textView.getText().toString())) {
-                    GoogleMapEventHandler.moveCamera(currentUserInfo.latLng, 16);
-                    Toast.makeText(MapsActivity.this, "Synced", Toast.LENGTH_SHORT).show();
-                } else {
-                    fab.setBackgroundTintList(ContextCompat.getColorStateList(MapsActivity.this, R.color.darkgreen));
-                    textView.setText(FLOATING_ACTION_BUTTON_DESTINATION);
-
-                    com.as.atlas.googlemapfollowwe.Place destination = destinationValueEventListener.getPlace();
-                    LatLng latLng = new LatLng(destination.lat, destination.lng);
-                    // add Marker on map
-                    GoogleMapEventHandler.addMarker(latLng, destination.address, BitmapDescriptorFactory.HUE_YELLOW);
-                    GoogleMapEventHandler.moveCamera(latLng, 16);
-                    Log.d(TAG, "fab.setOnClickListener: latLng=" + latLng);
-
-                    navigateToDestination(AbstractRouting.TravelMode.DRIVING, currentUserInfo.latLng, latLng);
-                }
-            }
-        });
-
-        fab.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                TextView textView = (TextView) MapsActivity.this.findViewById(R.id.textViewDestination);
-                fab.setBackgroundTintList(ContextCompat.getColorStateList(MapsActivity.this, R.color.darkgreen));
-                textView.setText(FLOATING_ACTION_BUTTON_DESTINATION);
-                return false;
-            }
-        });
 
 
         configGoogleApiClient();
@@ -424,13 +452,35 @@ public class MapsActivity extends AppCompatActivity
 
         mFirebase = new Firebase(URL_FIREBASE);
 
-        createUser();
+        if (currentUserInfo == null) createUser();
+        if (currentUserInfo != null) updateUserToFirebase(currentUserInfo);
+
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();
         mUIHandler = new UIHandler(MapsActivity.this);
 
         if (mBackgroundLocationSync) startLocationUpdateServices();
+
+        preUtilUserRoute = new PrefUtil<UserRoute>(this.getApplicationContext());
+    }
+
+    private void restoreSaveInstanceState(Bundle savedInstanceState) {
+        if (null != savedInstanceState) {
+//            double[] lats = savedInstanceState.getDoubleArray(EXTRA_LATS);
+//            double[] lngs = savedInstanceState.getDoubleArray(EXTRA_LNGS);
+//            if (lats != null && lngs != null) {
+//                for (int i = 0; i < lats.length; i++) {
+//                    LatLng latLng = new LatLng(lats[i], lngs[i]);
+//                    currentUserInfo.userRoute.addRoute(latLng);
+//                    Log.d(TAG, "onCreate: restoreSaveInstanceState -> i=" + i + " latLng=" + latLng);
+//                }
+//            }
+            currentUserInfo = (CurrentUserInfo) savedInstanceState.getSerializable(EXTRA_CURRENT_USER_INFO);
+            Log.d(TAG, "restoreSaveInstanceState currentUserInfo=" + currentUserInfo);
+        } else {
+            Log.d(TAG, "savedInstanceState == null");
+        }
     }
 
     public void startLocationUpdateServices() {
@@ -450,7 +500,7 @@ public class MapsActivity extends AppCompatActivity
     private void navigateToDestination(AbstractRouting.TravelMode method, LatLng start, LatLng end) {
         Routing routing = new Routing.Builder()
                 //.travelMode(AbstractRouting.TravelMode.WALKING)   // 指定路徑
-                .travelMode(AbstractRouting.TravelMode.DRIVING)
+                .travelMode(AbstractRouting.TravelMode.WALKING)
                 .waypoints(start, end)   // 起點終點
                 .withListener(this)
                 .build();
@@ -461,8 +511,9 @@ public class MapsActivity extends AppCompatActivity
     private void sendDestionationToServer(com.as.atlas.googlemapfollowwe.Place place) {
         Log.d(TAG, "sendDestionationToServer: place=" + place);
 
-        UserPlace userPlace = new UserPlace(place.lat, place.lng);
-        userAddedPointEventListener.setValue(userPlace);
+        // Should not
+//        UserPlace userPlace = new UserPlace(place.lat, place.lng);
+//        userAddedPointEventListener.setValue(userPlace);
 
         if (place.lat != 0.0 || place.lng != 0.0) {
             destinationValueEventListener.setPlace(place);
@@ -470,14 +521,15 @@ public class MapsActivity extends AppCompatActivity
     }
 
     private void createUser() {
-        String name = getIntent().getStringExtra(CurrentUserInfo.NAME);
-        int iconNo = getIntent().getIntExtra(CurrentUserInfo.ICON_NO, R.mipmap.ic_launcher);
+        String name = getIntent().getStringExtra(CurrentUserInfo.EXTRA_NAME);
+        int iconNo = getIntent().getIntExtra(CurrentUserInfo.EXTRA_ICON_NO, R.mipmap.ic_launcher);
+        Log.d(TAG, "createUser name=" + name + " icon=" + iconNo);
 
         currentUserInfo = (name != null) ? new CurrentUserInfo(name, iconNo) : null;
-        Log.d(TAG, "onCreate: " + currentUserInfo);
+        Log.d(TAG, "createUser: " + currentUserInfo);
 
         // Put user to user
-        if (currentUserInfo != null) updateUserToFirebase(currentUserInfo);
+
     }
 
     public static CurrentUserInfo getCurrentUserInfo() {
@@ -593,6 +645,13 @@ public class MapsActivity extends AppCompatActivity
     @Override
     protected void onStart() {
         super.onStart();
+
+
+        // Marked action bar first.
+//        getSupportActionBar().setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+//        getSupportActionBar().setCustomView(R.layout.abs_layout);
+//        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client.connect();
@@ -665,16 +724,22 @@ public class MapsActivity extends AppCompatActivity
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
 
-        if (userRoute != null) {
-            double[] lats = new double[userRoute.size()];
-            double[] lngs = new double[userRoute.size()];
-            for (int i = 0; i < userRoute.size(); i++) {
-                lats[i] = userRoute.get(i).latitude;
-                lngs[i] = userRoute.get(i).longitude;
-            }
-            outState.putDoubleArray(EXTRA_LATS, lats);
-            outState.putDoubleArray(EXTRA_LNGS, lngs);
+//        List<LatLng> userRoute = currentUserInfo.userRoute.getRoute();
+//        if (userRoute != null) {
+//            double[] lats = new double[userRoute.size()];
+//            double[] lngs = new double[userRoute.size()];
+//            for (int i = 0; i < userRoute.size(); i++) {
+//                lats[i] = userRoute.get(i).latitude;
+//                lngs[i] = userRoute.get(i).longitude;
+//            }
+//            outState.putDoubleArray(EXTRA_LATS, lats);
+//            outState.putDoubleArray(EXTRA_LNGS, lngs);
+//        }
+
+        if (currentUserInfo != null) {
+            outState.putSerializable(EXTRA_CURRENT_USER_INFO, currentUserInfo);
         }
+
         mapPlaceSelectionListener.saveMarkerToSharePref();
     }
 
@@ -782,41 +847,74 @@ public class MapsActivity extends AppCompatActivity
             Toast.makeText(this, R.string.google_play_service_missing,
                     LENGTH_LONG).show();
         }
-
     }
 
+    private static boolean preSetIcon = true;
     @Override
     public void onLocationChanged(Location location) {
         log("onLocationChanged location: " + location);
-
-
         textViewLatitude.setText(String.valueOf(location.getLatitude()));
         textViewLongtitude.setText(String.valueOf(location.getLongitude()));
+
+
+
+        // Save first
+        Date lastTime = currentUserInfo.time;
+        Date currentTime = new Date();
 
         LatLng fromLoc = new LatLng(currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude);
         LatLng toLoc = new LatLng(location.getLatitude(), location.getLongitude());
 
+        currentUserInfo.time = currentTime;
+        currentUserInfo.latLng = toLoc;
+
+        // Update at the 1st due to location equal or appro will be filtered
+        if (preSetIcon && !toLoc.equals(CurrentUserInfo.LATLNG_101)) {
+            updateUserMovingOnUI(location);
+            preSetIcon = false;
+            Log.d(TAG, "onLocationChanged preset to improve user experience");
+        }
+
         if (fromLoc.equals(toLoc)) {
-            Log.d(TAG, "location unchange");
+            Log.d(TAG, "onLocationChanged: location unchange");
+            textViewAccMile.setTextColor(Color.BLACK);
+            return;
+        }
+        double distM = Utils.getDistance(fromLoc, toLoc);
+        long timeS = Utils.getTimeDiffSec(lastTime, currentTime);
+        Log.d(TAG, "onLocationChanged: speed distM=" + distM + " timeS=" + timeS);
+
+        if (!User.isReasonableSpeed(User.ArriveMethod.WALKING, distM, timeS)) {
+            Log.d(TAG, "onLocationChanged: Unreasonable speed distM=" + distM + " timeS=" + timeS);
             return;
         }
 
-        if (userRoute == null) userRoute = new ArrayList<>();
-        userRoute.add(toLoc);
+        currentUserInfo.userRoute.addRoute(toLoc);
+        updateUserMovingOnUI(location);
 
-        if (line != null) line.remove();
+
+    }
+
+    private void updateUserMovingOnUI(Location location) {
 
         PolylineOptions points = new PolylineOptions();
-        for (LatLng pt: userRoute) {
+        int i=0;
+        for (LatLng pt: currentUserInfo.userRoute.getRoute()) {
+            Log.d(TAG, "updateUserMovingOnUI: i=" + (i++) + " pt=" + pt);
             points.add(pt);
         }
+        if (line != null) line.remove();
         line = googleMap.addPolyline(points.width(30).color(Color.BLUE));
-        userOnlineChangeValueEventListener.updateCurrentUserLocation(currentUserInfo, location);
+        textViewAccMile.setText(String.valueOf(currentUserInfo.userRoute.getAccMile()) + " m");
+        textViewAccMile.setTextColor(Color.RED);
 
         if (mLockedOnUserView) {
             GoogleMapEventHandler.moveCamera(currentUserInfo.latLng, 16);
         }
+        // Update to Firebase database
+        userOnlineChangeValueEventListener.updateCurrentUserLocation(currentUserInfo, location);
     }
+
 
 //    @Override
 //    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -824,7 +922,7 @@ public class MapsActivity extends AppCompatActivity
 //        Log.d(TAG, "onActivityResult: requestCode=" + requestCode + " resultCode=" + resultCode);
 //        if (requestCode == RequestCode.REQUEST_CODE_LOGIN_ACTIVITY) {
 //            if (resultCode == RESULT_OK) {
-//                String name = data.getStringExtra(CurrentUserInfo.NAME);
+//                String name = data.getStringExtra(CurrentUserInfo.EXTRA_NAME);
 //                currentUserInfo = (name != null) ? new CurrentUserInfo(name) : null;
 //                Log.d(TAG, "onActivityResult: " + currentUserInfo);
 //            }
@@ -872,7 +970,7 @@ public class MapsActivity extends AppCompatActivity
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final com.as.atlas.googlemapfollowwe.Place place = Utils.getDurationOfTravel("driving", currentUserInfo.latLng, latLng);
+                final com.as.atlas.googlemapfollowwe.Place place = Utils.getDurationOfTravel("walking", currentUserInfo.latLng, latLng);
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -916,6 +1014,7 @@ public class MapsActivity extends AppCompatActivity
 
     @Override
     public void onInfoWindowClick(final Marker marker) {
+
         String title = marker.getTitle();
         final String snippetOrig = marker.getSnippet();
 
@@ -932,9 +1031,15 @@ public class MapsActivity extends AppCompatActivity
             return;
         }
 
+        TextView customTitle = new TextView(this);
+        customTitle.setText("Follow We: Leave Message");
+        customTitle.setGravity(Gravity.CENTER_HORIZONTAL);
+        customTitle.setTextSize(20);
+        customTitle.setTextColor(Color.BLACK);
+
         AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
         builder.setView(view);
-        builder.setTitle("Follow We: Leave Message");
+        builder.setCustomTitle(customTitle);
         builder.setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int which) {
                 // continue with delete

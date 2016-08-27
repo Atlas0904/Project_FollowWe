@@ -68,11 +68,6 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
         this.context = context;
         appSharedPrefs = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
         prefsEditor = appSharedPrefs.edit();
-        prepareForDialog();
-    }
-
-    private void prepareForDialog() {
-
     }
 
     @Override

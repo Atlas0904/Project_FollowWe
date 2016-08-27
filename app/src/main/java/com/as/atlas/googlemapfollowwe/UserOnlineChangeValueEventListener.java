@@ -53,6 +53,10 @@ public class UserOnlineChangeValueEventListener implements ValueEventListener, C
         ref.child(currentUserInfo.name).setValue(user);   // !!!!! 記得要設定乘 ref 的 user name 的... 要多一個 index
     }
 
+    public HashMap<String, UserMisc> getUsers() {
+        return users;
+    }
+
     @Override
     public void onDataChange(DataSnapshot dataSnapshot) {
         //Log.d(TAG, "UserOnlineChangeValueEventListener: dataSnap=" + dataSnapshot);

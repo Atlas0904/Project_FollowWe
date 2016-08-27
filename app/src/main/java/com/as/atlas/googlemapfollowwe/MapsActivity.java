@@ -925,6 +925,13 @@ public class MapsActivity extends AppCompatActivity
         TextView textViewUserName = (TextView) view.findViewById(R.id.textViewUserName);
         textViewUserName.setText(currentUserInfo.name);
 
+        // If click on user icon
+        if (userOnlineChangeValueEventListener.getUsers() != null &&
+                userOnlineChangeValueEventListener.getUsers().containsKey(title)) {
+            Toast.makeText(this, "I am " + title, Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         AlertDialog.Builder builder = new AlertDialog.Builder(MapsActivity.this);
         builder.setView(view);
         builder.setTitle("Follow We: Leave Message");

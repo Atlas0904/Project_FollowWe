@@ -46,7 +46,8 @@ public class UserPlace {
 
     @Override
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof UserPlace) )  return false;
+        if (o == null || !(o instanceof UserPlace))  return false;
+        if (this.userMessages == null || ((UserPlace) o).userMessages == null)  return false;
 
         UserPlace u = (UserPlace) o;
         return this.id.equals(u.id) &&

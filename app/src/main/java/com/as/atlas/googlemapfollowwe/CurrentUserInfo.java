@@ -43,16 +43,17 @@ public class CurrentUserInfo implements Serializable {
         this.userRoute = new UserRoute(name);
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-        out.writeDouble(latLng.latitude);
-        out.writeDouble(latLng.longitude);
-    }
-
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-        latLng = new LatLng(in.readDouble(), in.readDouble());
-    }
+    // Remove due to we dont use transient
+//    private void writeObject(ObjectOutputStream out) throws IOException {
+//        out.defaultWriteObject();
+//        out.writeDouble(latLng.latitude);
+//        out.writeDouble(latLng.longitude);
+//    }
+//
+//    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+//        in.defaultReadObject();
+//        latLng = new LatLng(in.readDouble(), in.readDouble());
+//    }
 
     @Override
     public String toString() {

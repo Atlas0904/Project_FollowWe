@@ -33,7 +33,8 @@ Icon and picture Resource from:
 All icon contributed  by flaticon.com Under CC: Freepik. Designed by Freepik and distributed by Flaticon
 
 #Version
-2016/08/29: Feature: save user path you can check what you been ever.
+2016/08/29: Fix floating button click when loading not complete. Use getAddress() rather than getName() for PlaceSelectionListener. class Place Seriablizable
+2016/08/29: Feature: save user path you can check what you been ever
 2016/08/29: Use README file to record the change as will
 
 By Atlas

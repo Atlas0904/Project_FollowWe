@@ -166,6 +166,7 @@ public class Utils {
 
         try {
             JSONObject obj = new JSONObject(new String(bytes));
+            Log.d("Atlas", "getLatLngFromGoogleMapAPI() obj:" + obj);
 
             if (obj.getString(RESPONSE_STATUS).equals(RESPONSE_STATUS_OK)) {
                 JSONObject location = obj.getJSONArray(RESPONSE_RESULTS)

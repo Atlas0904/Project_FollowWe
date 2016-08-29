@@ -363,6 +363,9 @@ public class MapsActivity extends AppCompatActivity
                     textView.setText(FLOATING_ACTION_BUTTON_DESTINATION);
 
                     com.as.atlas.googlemapfollowwe.Place destination = destinationValueEventListener.getPlace();
+                    if (destination == null)  return;
+
+
                     LatLng latLng = new LatLng(destination.lat, destination.lng);
                     // add Marker on map
                     GoogleMapEventHandler.addMarker(latLng, destination.address, BitmapDescriptorFactory.HUE_YELLOW);
@@ -422,7 +425,8 @@ public class MapsActivity extends AppCompatActivity
         buttonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if ("".equals(currentUserInfo.destination)) {
+                Log.d(TAG, "buttonSend.setOnclick destination=" + currentUserInfo.destination);
+                if (!("".equals(currentUserInfo.destination))) {
                     sendDestionationToServer(currentUserInfo.destination);
                 }
             }

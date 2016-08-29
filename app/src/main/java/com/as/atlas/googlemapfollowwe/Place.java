@@ -1,10 +1,12 @@
 package com.as.atlas.googlemapfollowwe;
 
 
+import java.io.Serializable;
+
 /**
  * Created by atlas on 2016/8/18.
  */
-public class Place {
+public class Place implements Serializable {
 
     public double lat;
     public double lng;

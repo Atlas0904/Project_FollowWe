@@ -68,8 +68,9 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
     @Override
     public void onPlaceSelected(Place place) {
         // TODO: Get info about the selected place.
-        Log.i(TAG, "Place: " + place.getName());//get place details here
-        suggestedPlace = (String) place.getName();
+        Log.i(TAG, "Place: " + place);//get place details here
+        Log.d(TAG, "Place attribute=" + place.getAttributions());
+        suggestedPlace = (String) place.getAddress();
         new Thread(new SearchLatLngThread()).start();
 
     }
@@ -77,6 +78,7 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
 
     public class SearchLatLngThread implements Runnable {
         public void run() {
+            Log.d(TAG, "SearchLatLngThread suggestedPlace=" + suggestedPlace);
             double[] d = Utils.getLatLngFromGoogleMapAPI(suggestedPlace);
             // Check some place can not interpret to latLng
             if (d == null) return;

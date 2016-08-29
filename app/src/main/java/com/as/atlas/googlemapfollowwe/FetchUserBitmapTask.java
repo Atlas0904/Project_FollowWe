@@ -3,8 +3,6 @@ package com.as.atlas.googlemapfollowwe;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 
-import com.google.android.gms.maps.model.LatLng;
-
 import java.lang.ref.WeakReference;
 
 /**

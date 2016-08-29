@@ -1,7 +1,5 @@
 package com.as.atlas.googlemapfollowwe;
 
-import com.google.android.gms.maps.model.LatLng;
-
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -22,9 +20,8 @@ public class CurrentUserInfo implements Serializable {
     public int roomNo = 904;
     public int iconNo = R.mipmap.ic_launcher;
 
-    // Mark it transient so defaultReadObject()/defaultWriteObject() ignore it
     public final static LatLng LATLNG_101 = new LatLng(25.033408, 121.564099);
-    public transient LatLng latLng = LATLNG_101;
+    public LatLng latLng = LATLNG_101;
 
     public Place destination;
     public UserRoute userRoute;
@@ -46,8 +43,6 @@ public class CurrentUserInfo implements Serializable {
         this.userRoute = new UserRoute(name);
     }
 
-    // Mark it transient so defaultReadObject()/defaultWriteObject() ignore it
-    // Implement by ourself
     private void writeObject(ObjectOutputStream out) throws IOException {
         out.defaultWriteObject();
         out.writeDouble(latLng.latitude);
@@ -58,8 +53,6 @@ public class CurrentUserInfo implements Serializable {
         in.defaultReadObject();
         latLng = new LatLng(in.readDouble(), in.readDouble());
     }
-    // Mark it transient so defaultReadObject()/defaultWriteObject() ignore it
-
 
     @Override
     public String toString() {

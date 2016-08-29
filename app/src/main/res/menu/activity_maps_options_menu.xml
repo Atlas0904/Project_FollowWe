@@ -10,6 +10,8 @@
         android:title="Save route (Pref)" />
     <item android:id="@+id/menu_load_route_from_pref"
         android:title="Load route (Pref)" />
+    <item android:id="@+id/menu_clear_route_from_pref"
+        android:title="Clear route (Pref)" />
     <item android:id="@+id/menu_show_info"
         android:title="Information" />
 </menu>

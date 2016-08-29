@@ -12,7 +12,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
-import com.google.android.gms.maps.model.LatLng;
+
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -51,7 +51,7 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
 
         CameraPosition cameraPosition =
                 new CameraPosition.Builder()
-                        .target(latLng)
+                        .target(latLng.toGmsLatLng())
                         .zoom(scale)
                         .build();
 
@@ -76,7 +76,7 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
         if (bitmap == null)  return null;
 
         MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(place)
+        markerOptions.position(place.toGmsLatLng())
                 .title(title.toString())
                 .snippet(snippet.toString())
                 .icon(BitmapDescriptorFactory.fromBitmap(bitmap));
@@ -87,7 +87,7 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
     public static Marker addMarker(LatLng place, String title, String snippet, BitmapDescriptor icon) {
 
         MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(place)
+        markerOptions.position(place.toGmsLatLng())
                 .title(title.toString())
                 .snippet(snippet.toString())
                 .flat(true)
@@ -98,7 +98,7 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
 
     public static MarkerOptions createMarkerOptions(LatLng latLng, String title, String snippet, float color) {
         return new MarkerOptions()
-                .position(latLng)
+                .position(latLng.toGmsLatLng())
                 .title(title)
                 .snippet(snippet)
                 .icon(BitmapDescriptorFactory.defaultMarker(color));
@@ -106,7 +106,7 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
 
     public static Marker addMarker(LatLng latLng, String title, String snippet, float color) {
         MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng)
+        markerOptions.position(latLng.toGmsLatLng())
                 .title(title)
                 .snippet(snippet)
                 .icon(BitmapDescriptorFactory.defaultMarker(color));
@@ -120,7 +120,7 @@ public class GoogleMapEventHandler extends Handler implements FetchUserBitmapTas
         Bitmap icon = Bitmap.createScaledBitmap(iconBitmap, 256, 256, false);
 
         MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng)
+        markerOptions.position(latLng.toGmsLatLng())
                 .title(title)
                 .snippet(snippet)
                 .icon(BitmapDescriptorFactory.fromBitmap(icon));

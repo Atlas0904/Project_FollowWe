@@ -1,6 +1,6 @@
 package com.as.atlas.googlemapfollowwe;
 
-import com.google.android.gms.maps.model.LatLng;
+
 
 import java.util.ArrayList;
 import java.util.List;

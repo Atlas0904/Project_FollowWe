@@ -1,7 +1,5 @@
 package com.as.atlas.googlemapfollowwe;
 
-import com.google.android.gms.maps.model.LatLng;
-
 import java.io.Serializable;
 
 /**
@@ -62,6 +60,6 @@ public class User implements Serializable {
 
     @Override
     public String toString() {
-        return "[User] name=" + name + " lat=" + lat + " lng=" + lng + " iconNo=" + iconNo;
+        return "[User] name=" + name + " lat=" + lat + " lng=" + lng + " iconNo=" + iconNo + " arriveMethod=" + arriveMethod;
     }
 }

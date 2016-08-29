@@ -62,10 +62,11 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
+
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.gson.reflect.TypeToken;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -147,7 +148,8 @@ public class MapsActivity extends AppCompatActivity
     private ValueEventListener mOnlineChangeListener;
     private ArrayList<Polyline> polylines;
 
-    private PrefUtil<UserRoute> preUtilUserRoute;
+//    private PrefUtilUserRoute prefUtilUserRoute;
+    private PrefUtil<UserRoute> prefUtilUserRoute;
 
     @Override
     public void onRoutingFailure(RouteException e) {
@@ -303,11 +305,14 @@ public class MapsActivity extends AppCompatActivity
             case R.id.menu_sync_to_cloud:
                 break;
             case R.id.menu_save_route_to_pref:
-                preUtilUserRoute.saveToSharePref(currentUserInfo.userRoute, UserPlace.class.getSimpleName());
+                prefUtilUserRoute.saveToSharePref(currentUserInfo.userRoute, UserPlace.class.getSimpleName());
                 break;
             case R.id.menu_load_route_from_pref:
-                UserRoute userRoute = preUtilUserRoute.loadFromPref(UserPlace.class.getSimpleName());
+                UserRoute userRoute = prefUtilUserRoute.loadFromPref(UserPlace.class.getSimpleName());
                 currentUserInfo.userRoute = userRoute;
+                break;
+            case R.id.menu_clear_route_from_pref:
+                prefUtilUserRoute.saveToSharePref(null, UserPlace.class.getSimpleName());
                 break;
             case R.id.menu_show_info:
                 showInfo();
@@ -417,9 +422,9 @@ public class MapsActivity extends AppCompatActivity
         buttonSend.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //if ("".equals(currentUserInfo.destination)) {
-                sendDestionationToServer(currentUserInfo.destination);
-                //}
+                if ("".equals(currentUserInfo.destination)) {
+                    sendDestionationToServer(currentUserInfo.destination);
+                }
             }
         });
 
@@ -462,7 +467,10 @@ public class MapsActivity extends AppCompatActivity
 
         if (mBackgroundLocationSync) startLocationUpdateServices();
 
-        preUtilUserRoute = new PrefUtil<UserRoute>(this.getApplicationContext());
+
+        // Note: need to bring type into PreUtil
+        // http://stackoverflow.com/questions/20773850/gson-typetoken-with-dynamic-arraylist-item-type
+        prefUtilUserRoute = new PrefUtil<UserRoute>(this.getApplicationContext(), new TypeToken<UserRoute>(){}.getType());
     }
 
     private void restoreSaveInstanceState(Bundle savedInstanceState) {
@@ -501,7 +509,7 @@ public class MapsActivity extends AppCompatActivity
         Routing routing = new Routing.Builder()
                 //.travelMode(AbstractRouting.TravelMode.WALKING)   // 指定路徑
                 .travelMode(AbstractRouting.TravelMode.WALKING)
-                .waypoints(start, end)   // 起點終點
+                .waypoints(start.toGmsLatLng(), end.toGmsLatLng())   // 起點終點
                 .withListener(this)
                 .build();
 
@@ -859,14 +867,17 @@ public class MapsActivity extends AppCompatActivity
 
 
         // Save first
-        Date lastTime = currentUserInfo.time;
+        Date lastTime = (Date) currentUserInfo.time.clone();  // Need clone new one
         Date currentTime = new Date();
+
 
         LatLng fromLoc = new LatLng(currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude);
         LatLng toLoc = new LatLng(location.getLatitude(), location.getLongitude());
 
         currentUserInfo.time = currentTime;
         currentUserInfo.latLng = toLoc;
+
+        Log.d(TAG, "onLocationChanged lastTime=" + lastTime + " currentTime=" + currentTime + " diff=" + (currentTime.getTime() -lastTime.getTime()));
 
         // Update at the 1st due to location equal or appro will be filtered
         if (preSetIcon && !toLoc.equals(CurrentUserInfo.LATLNG_101)) {
@@ -881,11 +892,11 @@ public class MapsActivity extends AppCompatActivity
             return;
         }
         double distM = Utils.getDistance(fromLoc, toLoc);
-        long timeS = Utils.getTimeDiffSec(lastTime, currentTime);
-        Log.d(TAG, "onLocationChanged: speed distM=" + distM + " timeS=" + timeS);
+        long timeMs = Utils.getTimeDiffMs(lastTime, currentTime) / 1000;
+        Log.d(TAG, "onLocationChanged: speed distM=" + distM + " timeS=" + timeMs);
 
-        if (!User.isReasonableSpeed(User.ArriveMethod.WALKING, distM, timeS)) {
-            Log.d(TAG, "onLocationChanged: Unreasonable speed distM=" + distM + " timeS=" + timeS);
+        if (!User.isReasonableSpeed(User.ArriveMethod.WALKING, distM, timeMs)) {
+            Log.d(TAG, "onLocationChanged: Unreasonable speed distM=" + distM + " timeS=" + timeMs);
             return;
         }
 
@@ -901,7 +912,7 @@ public class MapsActivity extends AppCompatActivity
         int i=0;
         for (LatLng pt: currentUserInfo.userRoute.getRoute()) {
             Log.d(TAG, "updateUserMovingOnUI: i=" + (i++) + " pt=" + pt);
-            points.add(pt);
+            points.add(pt.toGmsLatLng());
         }
         if (line != null) line.remove();
         line = googleMap.addPolyline(points.width(30).color(Color.BLUE));
@@ -951,7 +962,7 @@ public class MapsActivity extends AppCompatActivity
     }
 
     @Override
-    public void onMapClick(final LatLng latLng) {
+    public void onMapClick(final com.google.android.gms.maps.model.LatLng latLng) {
         Log.d(TAG, "onMapClick latLng:" + latLng);
 
         float zoom = googleMap.getCameraPosition().zoom;
@@ -964,13 +975,13 @@ public class MapsActivity extends AppCompatActivity
         textViewClickedLatLng.setText(latLng.toString());
 
         final Geocoder geocoder = new Geocoder(this, Locale.getDefault());
-        Runnable r = mapPlaceSelectionListener.createSearchAddressThread(geocoder, latLng);
+        Runnable r = mapPlaceSelectionListener.createSearchAddressThread(geocoder, new LatLng(latLng));
         new Thread(r).start();
 
         new Thread(new Runnable() {
             @Override
             public void run() {
-                final com.as.atlas.googlemapfollowwe.Place place = Utils.getDurationOfTravel("walking", currentUserInfo.latLng, latLng);
+                final com.as.atlas.googlemapfollowwe.Place place = Utils.getDurationOfTravel("walking", currentUserInfo.latLng, new LatLng(latLng));
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -991,7 +1002,7 @@ public class MapsActivity extends AppCompatActivity
 
 
 
-                String placeId = Utils.getPlaceIdFromGoogleMapAPI(latLng, 500, "restaurant", "cruise");
+                String placeId = Utils.getPlaceIdFromGoogleMapAPI(new LatLng(latLng), 500, "restaurant", "cruise");
                 if ("".equals(placeId)) {
                     return;
                 }

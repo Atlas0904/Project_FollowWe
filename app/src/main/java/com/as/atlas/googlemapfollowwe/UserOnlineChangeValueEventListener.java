@@ -8,16 +8,12 @@ import com.firebase.client.DataSnapshot;
 import com.firebase.client.Firebase;
 import com.firebase.client.FirebaseError;
 import com.firebase.client.ValueEventListener;
-import com.google.android.gms.maps.MapsInitializer;
-import com.google.android.gms.maps.model.BitmapDescriptor;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
+
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
+
 
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -117,7 +113,7 @@ public class UserOnlineChangeValueEventListener implements ValueEventListener, C
                 // Change position directly
                 User user= userMisc.user;
                 LatLng latLng = new LatLng(user.getLat(), user.getLng());
-                userMisc.marker.setPosition(latLng);
+                userMisc.marker.setPosition(latLng.toGmsLatLng());
                 userMisc.marker.setSnippet(latLng.toString());
             }
         }

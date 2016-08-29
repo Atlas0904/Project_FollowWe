@@ -5,16 +5,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
+import com.google.android.gms.maps.model.*;
 
 /**
  * Created by atlas on 2016/8/24.
@@ -63,8 +60,8 @@ public class MapInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
         // find UserPlace
         // Put into constructor
-        LatLng latLng = marker.getPosition();
-        String id =UserPlace.getId(latLng);
+        com.google.android.gms.maps.model.LatLng latLng = marker.getPosition();
+        String id = UserPlace.getId(new LatLng(latLng));
         if (userAddedPointEventListener.getUserPlaces() != null &&
                 userAddedPointEventListener.getUserPlaces().get(id) != null) {
             UserPlace userPlace = userAddedPointEventListener.getUserPlaces().get(id).userPlace;

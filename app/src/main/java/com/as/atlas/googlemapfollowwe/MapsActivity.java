@@ -426,7 +426,7 @@ public class MapsActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 Log.d(TAG, "buttonSend.setOnclick destination=" + currentUserInfo.destination);
-                if (!("".equals(currentUserInfo.destination))) {
+                if (currentUserInfo.destination != null) {
                     sendDestionationToServer(currentUserInfo.destination);
                 }
             }

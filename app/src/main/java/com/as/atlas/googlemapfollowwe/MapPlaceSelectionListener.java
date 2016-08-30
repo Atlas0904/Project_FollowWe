@@ -44,7 +44,7 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
     private static final String KEY_ADDRESS = "address";
     private static final String KEY_LATLNG = "latLng";
     private static final String SHARED_PREFS_MARKOPTIONSSET = "mark_options_set";
-    private String suggestedPlace;
+    private Place suggestedPlace;
 
     private String PREFERENCE_MARKER_OPTIONS = "pref_marker_options";
     private List<UserMarker> userMarkers = new ArrayList<UserMarker>();
@@ -70,16 +70,18 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
         // TODO: Get info about the selected place.
         Log.i(TAG, "Place: " + place);//get place details here
         Log.d(TAG, "Place attribute=" + place.getAttributions());
-        suggestedPlace = (String) place.getAddress();
-        new Thread(new SearchLatLngThread()).start();
+        suggestedPlace = place;
+//        new Thread(new SearchLatLngThread()).start();
 
+        Message msg = MapPlaceSelectionListener.this.obtainMessage(EVENT_ON_SUGGEST_PLACE_DONE);
+        sendMessage(msg);
     }
 
 
     public class SearchLatLngThread implements Runnable {
         public void run() {
             Log.d(TAG, "SearchLatLngThread suggestedPlace=" + suggestedPlace);
-            double[] d = Utils.getLatLngFromGoogleMapAPI(suggestedPlace);
+            double[] d = Utils.getLatLngFromGoogleMapAPI(suggestedPlace.getName().toString());
             // Check some place can not interpret to latLng
             if (d == null) return;
             Log.d(TAG, "SearchLatLngThread d:" + d[0] + "/" + d[1]);
@@ -139,14 +141,14 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
         switch (msg.what) {
             case EVENT_ON_SUGGEST_PLACE_DONE: {
 
-                double[] d = msg.getData().getDoubleArray(KEY_LATLNG);
-                Log.d(TAG, "EVENT_ON_SUGGEST_PLACE_DONE d:" + d[0] + "/" + d[1]);
-                final LatLng latLng = new LatLng(d[0], d[1]);
+                Log.d(TAG, "EVENT_ON_SUGGEST_PLACE_DONE place:" + suggestedPlace);
+                if (suggestedPlace == null)  return;
+                final LatLng latLng = new LatLng(suggestedPlace.getLatLng().latitude, suggestedPlace.getLatLng().longitude);
 
                 // add Marker on map
-                GoogleMapEventHandler.addMarker(latLng, suggestedPlace, BitmapDescriptorFactory.HUE_YELLOW);
+                GoogleMapEventHandler.addMarker(latLng, suggestedPlace.getName().toString(), BitmapDescriptorFactory.HUE_YELLOW);
                 GoogleMapEventHandler.moveCamera(latLng, 16);
-                com.as.atlas.googlemapfollowwe.Place place = new com.as.atlas.googlemapfollowwe.Place(latLng.latitude, latLng.longitude, suggestedPlace);
+                com.as.atlas.googlemapfollowwe.Place place = new com.as.atlas.googlemapfollowwe.Place(latLng.latitude, latLng.longitude, suggestedPlace.getName().toString());
                 MapsActivity.getCurrentUserInfo().destination = place;
                 Log.d(TAG, "EVENT_ON_SUGGEST_PLACE_DONE place=" + place);
                 break;
@@ -308,7 +310,7 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
         return ret;
     }
 
-    public String getSuggestedPlace() {
+    public Place getSuggestedPlace() {
         return suggestedPlace;
     }
 }

@@ -87,6 +87,7 @@ public class DestinationValueEventListener implements ValueEventListener, ChildE
 
         TextView textViewDestination = (TextView) ((Activity) context).findViewById(R.id.textViewDestination);
 
+        Log.d(TAG, "changeIconAndTextUI: place=" + place);
         if (!"".equals(place.address)) {
             textViewDestination.setText(place.address);
             textViewDestination.setTypeface(null, Typeface.BOLD);

@@ -46,5 +46,15 @@ public class GroupChatroomActivity extends AppCompatActivity implements View.OnC
         String input = editTextInput.getText().toString();
         userMessages.add(new UserMessage(currentUserInfo.name, input, Utils.getCurrentTimeStamp()));
         chatroomAdapter.update();
+        scollToListViewButton();
+    }
+
+    private void scollToListViewButton() {
+        listView.post(new Runnable() {
+            @Override
+            public void run() {
+                listView.setSelection(chatroomAdapter.getCount() -1);
+            }
+        });
     }
 }

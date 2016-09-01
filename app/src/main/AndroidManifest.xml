@@ -63,7 +63,9 @@
         <service
             android:name=".LocationUpdateService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
+
+        <activity android:name=".GroupChatroomActivity"></activity>
     </application>
 
 </manifest>

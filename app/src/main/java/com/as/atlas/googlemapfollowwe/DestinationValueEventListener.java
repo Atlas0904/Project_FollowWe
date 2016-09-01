@@ -31,7 +31,7 @@ public class DestinationValueEventListener implements ValueEventListener, ChildE
     public DestinationValueEventListener(Context context, Firebase root, CurrentUserInfo currentUserInfo) {
         this.context = context;
         this.root = root;
-        ref = this.root.child(NodeDefineOnFirebase.NODE_ROOM_NO).child(String.valueOf(currentUserInfo.roomNo)).child(NodeDefineOnFirebase.NODE_DESTINATION);
+        ref = this.root.child(BaseValueEventListener.NODE_ROOM_NO).child(String.valueOf(currentUserInfo.roomNo)).child(BaseValueEventListener.NODE_DESTINATION);
         Log.d(TAG, "DestinationValueEventListener: ref" + ref);
         ref.addValueEventListener(this);
         ref.addChildEventListener(this);
@@ -41,7 +41,7 @@ public class DestinationValueEventListener implements ValueEventListener, ChildE
 
     public void setPlace(Place destination) {
         Log.d(TAG, "DestinationValueEventListener: ref" + ref);
-        ref.child(NodeDefineOnFirebase.NODE_DESTINATION).setValue(destination);   // !!!!! 記得要設定乘 ref 的 user name 的... 要多一個 index
+        ref.child(BaseValueEventListener.NODE_DESTINATION).setValue(destination);   // !!!!! 記得要設定乘 ref 的 user name 的... 要多一個 index
     }
 
     @Override

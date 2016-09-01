@@ -399,7 +399,8 @@ public class MapsActivity extends AppCompatActivity
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
+                .findFragmentById(R.id.googleMapFragment);
+        Log.d(TAG, "onCreate: mapFragment=" + mapFragment);
 
         mapFragment.getMapAsync(this);
 
@@ -453,7 +454,7 @@ public class MapsActivity extends AppCompatActivity
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 
-        mapPlaceSelectionListener = new MapPlaceSelectionListener(this);
+        mapPlaceSelectionListener = new MapPlaceSelectionListener(this, googleApiClient);
         autocompleteFragment.setOnPlaceSelectedListener(mapPlaceSelectionListener);
 
 

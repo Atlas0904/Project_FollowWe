@@ -19,8 +19,12 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.PlaceBuffer;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
@@ -53,16 +57,33 @@ public class MapPlaceSelectionListener extends Handler implements PlaceSelection
     SharedPreferences appSharedPrefs;
     SharedPreferences.Editor prefsEditor;
 
+    ResultCallback<PlaceBuffer> placeBufferResultCallback;
+    GoogleApiClient googleApiClient;
+
     TextView textViewAddress;
     TextView title;
     View view;
     AlertDialog.Builder builder;
 
     private Context context;
-    public MapPlaceSelectionListener(Context context) {
+    public MapPlaceSelectionListener(Context context, GoogleApiClient googleApiClient) {
         this.context = context;
         appSharedPrefs = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
         prefsEditor = appSharedPrefs.edit();
+        this.googleApiClient = googleApiClient;
+        Places.GeoDataApi.getPlaceById(googleApiClient, "ChIJqS4y_ompQjQRZn8d7gQEdSE")
+                .setResultCallback(new ResultCallback<PlaceBuffer>() {
+                    @Override
+                    public void onResult(PlaceBuffer places) {
+                        if (places.getStatus().isSuccess() && places.getCount() > 0) {
+                            final Place myPlace = places.get(0);
+                            Log.i(TAG, "Place found: " + myPlace.getName());
+                        } else {
+                            Log.e(TAG, "Place not found");
+                        }
+                        places.release();
+                    }
+                });
     }
 
     @Override

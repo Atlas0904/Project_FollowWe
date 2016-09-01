@@ -10,6 +10,8 @@ import java.util.Date;
  * Created by atlas on 2016/8/13.
  */
 public class CurrentUserInfo implements Serializable {
+
+    public final static String EXTRA_CURRENTUSERINFO = "EXTRA_CURRENTUSERINFO";
     public final static String EXTRA_NAME = "NAME";
     public final static String EXTRA_PWD = "PWD";
     public final static String EXTRA_NUMBER_ROOM = "ROOM_NUMBER";

@@ -111,6 +111,7 @@ public class MapsActivity extends AppCompatActivity
     public TextView textViewDuration;
     public TextView textViewDistance;
     private TextView textViewAccMile;
+    private TextView textViewSpeed;
 
     // Navigation setion start
     private DrawerLayout drawerLayout;
@@ -199,6 +200,7 @@ public class MapsActivity extends AppCompatActivity
             // Handle the camera action
             GoogleMapEventHandler.moveCamera(currentUserInfo.latLng, 12);
         } else if (id == R.id.nav_gallery) {
+            openGroupChat();
 
         } else if (id == R.id.nav_slideshow) {
 
@@ -213,6 +215,12 @@ public class MapsActivity extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void openGroupChat() {
+        Intent intent = new Intent(MapsActivity.this, GroupChatroomActivity.class);
+        intent.putExtra(CurrentUserInfo.EXTRA_CURRENTUSERINFO, currentUserInfo);
+        startActivity(intent);
     }
 
     //Local variable
@@ -443,10 +451,7 @@ public class MapsActivity extends AppCompatActivity
         textViewDuration = (TextView) findViewById(R.id.textViewDuration);
         textViewDistance = (TextView) findViewById(R.id.textViewDistance);
         textViewAccMile = (TextView) findViewById(R.id.textViewAccMile);
-
-
-
-
+        textViewSpeed = (TextView) findViewById(R.id.textViewSpeed);
 
         configGoogleApiClient();
         configLocationRequest();
@@ -556,7 +561,7 @@ public class MapsActivity extends AppCompatActivity
         // Assigned default value first. Wait for Google map ready and update currnet value
         User user = new User(currentUserInfo.name, currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude, currentUserInfo.iconNo);
 
-        mFirebaseRoomInfo = mFirebase.child(NodeDefineOnFirebase.NODE_ROOM_NO);
+        mFirebaseRoomInfo = mFirebase.child(BaseValueEventListener.NODE_ROOM_NO);
 
 
         userOnlineChangeValueEventListener = new UserOnlineChangeValueEventListener(mFirebase, currentUserInfo);  // set root
@@ -566,10 +571,10 @@ public class MapsActivity extends AppCompatActivity
         userAddedPointEventListener = new UserAddedPointEventListener(this, mFirebase, currentUserInfo);
 
 
-        mFirebaseUser = mFirebase.child(NodeDefineOnFirebase.NODE_PRESENCE).child(currentUserInfo.name);  // Used to info on-line
+        mFirebaseUser = mFirebase.child(BaseValueEventListener.NODE_PRESENCE).child(currentUserInfo.name);  // Used to info on-line
         mFirebaseOnline = mFirebase.child(".info/connected");   // User connection with FB server
 
-        mFirebaseUserInfo = mFirebase.child(NodeDefineOnFirebase.NODE_USER_ID);
+        mFirebaseUserInfo = mFirebase.child(BaseValueEventListener.NODE_USER_ID);
 //        mFirebaseUserInfo.addChildEventListener(new ChildEventListener() {
 //            @Override
 //            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -866,15 +871,14 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onLocationChanged(Location location) {
         log("onLocationChanged location: " + location);
+
+        // Update UI first for debug on screen
         textViewLatitude.setText(String.valueOf(location.getLatitude()));
         textViewLongtitude.setText(String.valueOf(location.getLongitude()));
-
-
 
         // Save first
         Date lastTime = (Date) currentUserInfo.time.clone();  // Need clone new one
         Date currentTime = new Date();
-
 
         LatLng fromLoc = new LatLng(currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude);
         LatLng toLoc = new LatLng(location.getLatitude(), location.getLongitude());
@@ -896,25 +900,29 @@ public class MapsActivity extends AppCompatActivity
             textViewAccMile.setTextColor(Color.BLACK);
             return;
         }
+
         double distM = Utils.getDistance(fromLoc, toLoc);
         long timeMs = Utils.getTimeDiffMs(lastTime, currentTime) / 1000;
-        Log.d(TAG, "onLocationChanged: speed distM=" + distM + " timeS=" + timeMs);
+        double speed = distM /timeMs * 1000;
+        Log.d(TAG, "onLocationChanged: speed distM=" + distM + " timeS=" + timeMs + " speed=" + speed);
+
 
         if (!User.isReasonableSpeed(User.ArriveMethod.WALKING, distM, timeMs)) {
             Log.d(TAG, "onLocationChanged: Unreasonable speed distM=" + distM + " timeS=" + timeMs);
             return;
         }
 
+        textViewSpeed.setText(String.valueOf(speed) + " m/s");
+
         currentUserInfo.userRoute.addRoute(toLoc);
         updateUserMovingOnUI(location);
-
 
     }
 
     private void updateUserMovingOnUI(Location location) {
 
         PolylineOptions points = new PolylineOptions();
-        int i=0;
+        int i = 0;
         for (LatLng pt: currentUserInfo.userRoute.getRoute()) {
             Log.d(TAG, "updateUserMovingOnUI: i=" + (i++) + " pt=" + pt);
             points.add(pt.toGmsLatLng());

@@ -62,7 +62,7 @@ public class LocationUpdateService extends Service implements
                     .build();
             mGoogleApiClient.connect();
 
-            ref = root.child(NodeDefineOnFirebase.NODE_ROOM_NO).child(String.valueOf(roomNo)).child(NodeDefineOnFirebase.NODE_USER);
+            ref = root.child(BaseValueEventListener.NODE_ROOM_NO).child(String.valueOf(roomNo)).child(BaseValueEventListener.NODE_USER);
             Log.d(TAG, "onStartCommand: roomNo=" + roomNo + " user=" + user + " ref=" + ref);
         }
 

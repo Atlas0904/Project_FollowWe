@@ -158,6 +158,15 @@
         android:id="@+id/textView5"
         android:layout_above="@+id/textViewAccMile"
         android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="m/s"
+        android:id="@+id/textViewSpeed"
+        android:layout_below="@+id/textViewAccMile"
+        android:layout_centerHorizontal="true" />
     <!--android:src="@mipmap/icon_google_map_follow_we" />-->
 
 </RelativeLayout>

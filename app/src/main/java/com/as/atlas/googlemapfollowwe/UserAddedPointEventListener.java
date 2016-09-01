@@ -34,7 +34,7 @@ public class UserAddedPointEventListener implements ValueEventListener, ChildEve
 
     public UserAddedPointEventListener(Context context, Firebase root, CurrentUserInfo currentUserInfo) {
         this.context = context;
-        ref = root.child(NodeDefineOnFirebase.NODE_ROOM_NO).child(String.valueOf(currentUserInfo.roomNo)).child(NodeDefineOnFirebase.NODE_USER_ADDED_MARKER);
+        ref = root.child(BaseValueEventListener.NODE_ROOM_NO).child(String.valueOf(currentUserInfo.roomNo)).child(BaseValueEventListener.NODE_USER_ADDED_MARKER);
         ref.addValueEventListener(this);
         ref.addChildEventListener(this);
         Log.d(TAG, "ref=" + ref);

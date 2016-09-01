@@ -32,7 +32,7 @@ public class UserOnlineChangeValueEventListener implements ValueEventListener, C
     public UserOnlineChangeValueEventListener(Firebase root, CurrentUserInfo currentUserInfo) {
         this.root = root;
         this.currentUserInfo = currentUserInfo;
-        ref = this.root.child(NodeDefineOnFirebase.NODE_ROOM_NO).child(String.valueOf(currentUserInfo.roomNo)).child(NodeDefineOnFirebase.NODE_USER);
+        ref = this.root.child(BaseValueEventListener.NODE_ROOM_NO).child(String.valueOf(currentUserInfo.roomNo)).child(BaseValueEventListener.NODE_USER);
         ref.addValueEventListener(this);
         ref.addChildEventListener(this);
         ref.child(currentUserInfo.name).onDisconnect().removeValue();

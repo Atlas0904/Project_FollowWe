@@ -34,6 +34,7 @@ Icon and picture Resource from:
 All icon contributed  by flaticon.com Under CC: Freepik. Designed by Freepik and distributed by Flaticon
 
 #Version
+2016/09/02: Share action bar
 2016/09/02: Complete group chat room part. Use BaseValueEventListener as a general Firebase element return
 2016/09/01: Start to implement Group chat room (Need to complete Firebase part & Chatroom UI part)
 2016/08/29: Fix floating button click when loading not complete. Use getAddress() rather than getName() for PlaceSelectionListener. class Place Seriablizable

@@ -11,26 +11,6 @@
     tools:context="com.as.atlas.googlemapfollowwe.GroupChatroomActivity">
 
 
-    <Button
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="B"
-        android:id="@+id/buttonGroupChatMoreOption"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
-
-    <Button
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Send"
-        android:id="@+id/buttonGroupChatSent"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_alignBottom="@+id/buttonGroupChatMoreOption" />
-
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -40,13 +20,33 @@
         android:layout_alignParentStart="true"
         android:layout_above="@+id/buttonGroupChatMoreOption" />
 
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="B"
+        android:id="@+id/buttonGroupChatMoreOption"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/editTextGroupchatInput"
         android:inputType="textCapSentences|textMultiLine"
         android:layout_alignParentBottom="true"
-        android:layout_toLeftOf="@+id/buttonGroupChatSent"
         android:layout_toRightOf="@+id/buttonGroupChatMoreOption"
-        android:layout_toEndOf="@+id/buttonGroupChatMoreOption" />
+        android:layout_toLeftOf="@+id/buttonGroupChatSent"
+        />
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Send"
+        android:id="@+id/buttonGroupChatSent"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        />
+
 </RelativeLayout>

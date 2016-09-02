@@ -9,15 +9,21 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.firebase.client.Firebase;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class GroupChatroomActivity extends AppCompatActivity implements View.OnClickListener{
+public class GroupChatroomActivity extends AppCompatActivity
+        implements View.OnClickListener, GroupChatValueEventListener.OnDataChangeListener {
 
     ListView listView;
     EditText editTextInput;
     Button buttonSend;
     ChatroomAdapter chatroomAdapter;
+
+    GroupChatValueEventListener groupChatValueEventListener;
+    Firebase ref;
 
     CurrentUserInfo currentUserInfo;
     List<UserMessage> userMessages;
@@ -27,26 +33,30 @@ public class GroupChatroomActivity extends AppCompatActivity implements View.OnC
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_chatroom);
 
+        currentUserInfo  = (CurrentUserInfo) getIntent().getSerializableExtra(CurrentUserInfo.EXTRA_CURRENTUSERINFO);
+        ref = new Firebase(BaseValueEventListener.URL_FIREBASE)
+                .child(BaseValueEventListener.NODE_ROOM_NO).child(String.valueOf(currentUserInfo.roomNo))
+                .child(BaseValueEventListener.NODE_GROUPCHAT_MSG);
+        groupChatValueEventListener = new GroupChatValueEventListener(this, ref, UserMessage.class);
+
         listView = (ListView) findViewById(R.id.listViewGroupchat);
         editTextInput = (EditText) findViewById(R.id.editTextGroupchatInput);
         buttonSend = (Button) findViewById(R.id.buttonGroupChatSent);
-        userMessages = new ArrayList<UserMessage>();
+
+        userMessages = groupChatValueEventListener.getList();
         chatroomAdapter = new ChatroomAdapter(this, userMessages);
         listView.setAdapter(chatroomAdapter);
 
-        currentUserInfo  = (CurrentUserInfo) getIntent().getSerializableExtra(CurrentUserInfo.EXTRA_CURRENTUSERINFO);
         buttonSend.setOnClickListener(this);
-
-
         setTitle("Group chat Room: " + currentUserInfo.roomNo);
     }
 
     @Override
     public void onClick(View view) {
         String input = editTextInput.getText().toString();
-        userMessages.add(new UserMessage(currentUserInfo.name, input, Utils.getCurrentTimeStampWithoutDate()));
-        chatroomAdapter.update();
-        scollToListViewButton();
+        UserMessage userMessages = new UserMessage(currentUserInfo.name, input, Utils.getCurrentTimeStampWithoutDate());
+
+        groupChatValueEventListener.push(userMessages);
     }
 
     private void scollToListViewButton() {
@@ -56,5 +66,12 @@ public class GroupChatroomActivity extends AppCompatActivity implements View.OnC
                 listView.setSelection(chatroomAdapter.getCount() -1);
             }
         });
+    }
+
+    @Override
+    public void onDataChangeCallback(Object o) {
+        userMessages = groupChatValueEventListener.getList();
+        chatroomAdapter.update();
+        scollToListViewButton();
     }
 }

@@ -12,6 +12,7 @@ Moreover, user can set destination to everyone. That is, all of you can know whe
 5. User can save current user route and reloaded
 6. User can enable background services to update location to others
 7. User can lock current camera to facilate check rather than scoll screen
+8. For users in the same room, they are be avilable to chat with each others
 
 #ToDO
 1. Password check
@@ -33,6 +34,7 @@ Icon and picture Resource from:
 All icon contributed  by flaticon.com Under CC: Freepik. Designed by Freepik and distributed by Flaticon
 
 #Version
+2016/09/02: Complete group chat room part. Use BaseValueEventListener as a general Firebase element return
 2016/09/01: Start to implement Group chat room (Need to complete Firebase part & Chatroom UI part)
 2016/08/29: Fix floating button click when loading not complete. Use getAddress() rather than getName() for PlaceSelectionListener. class Place Seriablizable
 2016/08/29: Feature: save user path you can check what you been ever

@@ -903,7 +903,7 @@ public class MapsActivity extends AppCompatActivity
 
         double distM = Utils.getDistance(fromLoc, toLoc);
         long timeMs = Utils.getTimeDiffMs(lastTime, currentTime) / 1000;
-        double speed = distM /timeMs * 1000;
+        double speed = distM /timeMs;
         Log.d(TAG, "onLocationChanged: speed distM=" + distM + " timeS=" + timeMs + " speed=" + speed);
 
 

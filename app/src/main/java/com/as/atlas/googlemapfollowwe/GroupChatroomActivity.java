@@ -44,7 +44,7 @@ public class GroupChatroomActivity extends AppCompatActivity implements View.OnC
     @Override
     public void onClick(View view) {
         String input = editTextInput.getText().toString();
-        userMessages.add(new UserMessage(currentUserInfo.name, input, Utils.getCurrentTimeStamp()));
+        userMessages.add(new UserMessage(currentUserInfo.name, input, Utils.getCurrentTimeStampWithoutDate()));
         chatroomAdapter.update();
         scollToListViewButton();
     }

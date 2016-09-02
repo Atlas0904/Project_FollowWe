@@ -259,6 +259,13 @@ public class Utils {
         return strDate;
     }
 
+    public static String getCurrentTimeStampWithoutDate() {
+        SimpleDateFormat sdfDate = new SimpleDateFormat("HH:mm:ss");
+        Date now = new Date();
+        String strDate = sdfDate.format(now);
+        return strDate;
+    }
+
     public static String getReadableTime(Date d) {
         SimpleDateFormat sdfDate = new SimpleDateFormat("yy-MM-dd HH:mm:ss");
         return sdfDate.format(d);

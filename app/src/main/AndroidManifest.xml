@@ -66,6 +66,7 @@
             android:exported="true" />
 
         <activity android:name=".GroupChatroomActivity"></activity>
+        <activity android:name=".One2OneChatroomActivity"></activity>
     </application>
 
 </manifest>

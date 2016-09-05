@@ -198,7 +198,7 @@ public class MapsActivity extends AppCompatActivity
 
         if (id == R.id.nav_camera) {
             // Handle the camera action
-            GoogleMapEventHandler.moveCamera(currentUserInfo.latLng, 12);
+            GoogleMapEventHandler.moveCamera(currentUserInfo.latLng, 11);
         } else if (id == R.id.nav_gallery) {
             openGroupChat();
 
@@ -222,6 +222,14 @@ public class MapsActivity extends AppCompatActivity
         intent.putExtra(CurrentUserInfo.EXTRA_CURRENTUSERINFO, currentUserInfo);
         startActivity(intent);
     }
+
+    private void openOne2OneChat(String talkto) {
+        Intent intent = new Intent(MapsActivity.this, One2OneChatroomActivity.class);
+        intent.putExtra(CurrentUserInfo.EXTRA_CURRENTUSERINFO, currentUserInfo);
+        intent.putExtra(One2OneChatroomActivity.EXTRA_TALKTO, talkto);
+        startActivity(intent);
+    }
+
 
     //Local variable
     public class UIHandler extends Handler {
@@ -1051,7 +1059,11 @@ public class MapsActivity extends AppCompatActivity
         // If click on user icon
         if (userOnlineChangeValueEventListener.getUsers() != null &&
                 userOnlineChangeValueEventListener.getUsers().containsKey(title)) {
-            Toast.makeText(this, "I am " + title, Toast.LENGTH_SHORT).show();
+
+            String dist = String.valueOf(Utils.getDistance(marker.getPosition().latitude, marker.getPosition().longitude, currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude));
+            String msg = "I am " + title + ". Our are " + dist + " m far away.";
+            Toast.makeText(this, msg , Toast.LENGTH_SHORT).show();
+            openOne2OneChat(title);
             return;
         }
 

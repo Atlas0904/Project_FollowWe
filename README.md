@@ -13,6 +13,7 @@ Moreover, user can set destination to everyone. That is, all of you can know whe
 6. User can enable background services to update location to others
 7. User can lock current camera to facilate check rather than scoll screen
 8. For users in the same room, they are be avilable to chat with each others
+9. User can chat with other users who login on map
 
 #ToDO
 1. Password check
@@ -34,6 +35,7 @@ Icon and picture Resource from:
 All icon contributed  by flaticon.com Under CC: Freepik. Designed by Freepik and distributed by Flaticon
 
 #Version
+2016/09/05: Add One2One chat feature. Refactor using ChatValueEventListener.
 2016/09/02: Share action bar
 2016/09/02: Complete group chat room part. Use BaseValueEventListener as a general Firebase element return
 2016/09/01: Start to implement Group chat room (Need to complete Firebase part & Chatroom UI part)

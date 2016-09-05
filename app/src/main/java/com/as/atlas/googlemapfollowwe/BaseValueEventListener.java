@@ -27,6 +27,7 @@ abstract public class BaseValueEventListener<T> implements ValueEventListener, C
     public final static String NODE_DESTINATION = "destination";
     public final static String NODE_USER_ADDED_MARKER = "user_added_marker";
     public final static String NODE_GROUPCHAT_MSG = "group_chat_msg";
+    public final static String NODE_ONE2ONECHAT_MSG = "group_one2one_msg";
 
     private static final String TAG = BaseValueEventListener.class.getSimpleName();
     protected Context mContext;

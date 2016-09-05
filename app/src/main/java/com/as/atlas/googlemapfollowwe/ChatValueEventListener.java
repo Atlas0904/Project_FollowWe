@@ -8,12 +8,12 @@ import com.firebase.client.Firebase;
 /**
  * Created by atlas on 2016/9/1.
  */
-public class GroupChatValueEventListener extends BaseValueEventListener<UserMessage> {
+public class ChatValueEventListener extends BaseValueEventListener<UserMessage> {
 
-    private static final String TAG = GroupChatValueEventListener.class.getSimpleName();
+    private static final String TAG = ChatValueEventListener.class.getSimpleName();
     private OnDataChangeListener mListener;
 
-    public GroupChatValueEventListener(Context context, Firebase ref, Class clazz) {
+    public ChatValueEventListener(Context context, Firebase ref, Class clazz) {
         super(context, ref, clazz);
         mListener = (OnDataChangeListener) context;
     }

@@ -38,7 +38,7 @@ Icon and picture Resource from:
 All icon contributed  by flaticon.com Under CC: Freepik. Designed by Freepik and distributed by Flaticon
 
 #Version
-2016/09/07: Adjust layout
+2016/09/07: Adjust layout. Clear up text afer sent & Adjust user name
 2016/09/05: Add One2One chat feature. Refactor using ChatValueEventListener.
 2016/09/02: Share action bar
 2016/09/02: Complete group chat room part. Use BaseValueEventListener as a general Firebase element return

@@ -64,6 +64,7 @@ public abstract class BaseChatRoomActivity extends AppCompatActivity
         UserMessage userMessages = new UserMessage(currentUserInfo.name, input, Utils.getCurrentTimeStampWithoutDate());
 
         chatValueEventListener.push(userMessages);
+        editTextInput.setText("");
     }
 
     private void scollToListViewButton() {

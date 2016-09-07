@@ -28,13 +28,13 @@
     android:layout_alignParentStart="true" />
 
     <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Sent!"
         android:id="@+id/buttonSend"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:background="@mipmap/icon_destination_upload"
+        android:layout_height="45dp"
+        android:layout_width="45dp"
+        android:layout_below="@+id/place_autocomplete_fragment"
+        android:layout_alignRight="@+id/textViewLatitude"
+        android:layout_alignEnd="@+id/textViewLatitude" />
 
     <fragment android:id="@+id/place_autocomplete_fragment"
         android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"

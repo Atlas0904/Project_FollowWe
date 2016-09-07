@@ -1,19 +1,33 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="190dp"
+    android:layout_height="80dp"
+    android:layout_gravity="top"
     android:background="#0097a7"
     >
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/navigation_header_image"
+        android:scaleType="fitCenter"
+        android:adjustViewBounds="true"
+        android:maxWidth="64dp"
+        android:maxHeight="64dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignLeft="@+id/navigation_header_name"
+        android:layout_alignStart="@+id/navigation_header_name" />
+
     <TextView
-        android:id="@+id/name"
+        android:id="@+id/navigation_header_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginLeft="24dp"
         android:layout_marginStart="24dp"
         android:layout_alignParentBottom="true"
-        android:text="Atlas Huang"
-        android:textSize="14sp"
+        android:textSize="18sp"
         android:textColor="#fff"
         android:textStyle="bold"
         android:paddingBottom="8dp"
         />
+
 </RelativeLayout>

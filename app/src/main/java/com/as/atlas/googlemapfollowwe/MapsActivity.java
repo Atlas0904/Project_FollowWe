@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Geocoder;
 import android.location.Location;
@@ -33,7 +35,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ListView;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -113,14 +115,8 @@ public class MapsActivity extends AppCompatActivity
     private TextView textViewAccMile;
     private TextView textViewSpeed;
 
-    // Navigation setion start
-    private DrawerLayout drawerLayout;
-    private ListView listViewDrawer;
-    private ActionBarDrawerToggle actionBarDrawerToggle;
-    private String drawerTitle;
-    private String title;
-    // Navigation setion end
-
+    private DrawerLayout drawer;
+    private TextView textViewNavHeaderName;
 
     public static final String FLOATING_ACTION_BUTTON_DESTINATION = "Dest";
 
@@ -211,10 +207,12 @@ public class MapsActivity extends AppCompatActivity
         } else if (id == R.id.nav_send) {
 
         }
-
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        return super.onPrepareOptionsMenu(menu);
     }
 
     private void openGroupChat() {
@@ -306,20 +304,18 @@ public class MapsActivity extends AppCompatActivity
         switch (id) {
             case android.R.id.home:
                 Log.d(TAG, "onOptionsItemSelected: back to home");
-//                Intent intent = new Intent(this, LoginActivity.class);
-//                startActivity(intent);
                 finish();
                 break;
-            case R.id.menu_save_points:
-                Log.d(TAG, "onOptionsItemSelected: menu_save_points");
-                mapPlaceSelectionListener.saveMarkerToSharePref();
-                break;
-            case R.id.menu_clear_points:
-                Log.d(TAG, "onOptionsItemSelected: menu_clear_points");
-                mapPlaceSelectionListener.resetAllMarkerOnMap();
-                break;
-            case R.id.menu_sync_to_cloud:
-                break;
+//            case R.id.menu_save_points:
+//                Log.d(TAG, "onOptionsItemSelected: menu_save_points");
+//                mapPlaceSelectionListener.saveMarkerToSharePref();
+//                break;
+//            case R.id.menu_clear_points:
+//                Log.d(TAG, "onOptionsItemSelected: menu_clear_points");
+//                mapPlaceSelectionListener.resetAllMarkerOnMap();
+//                break;
+//            case R.id.menu_sync_to_cloud:
+//                break;
             case R.id.menu_save_route_to_pref:
                 prefUtilUserRoute.saveToSharePref(currentUserInfo.userRoute, UserPlace.class.getSimpleName());
                 break;
@@ -403,10 +399,11 @@ public class MapsActivity extends AppCompatActivity
             }
         });
 
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.setDrawerListener(toggle);
+        drawer.closeDrawer(GravityCompat.START);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -461,11 +458,14 @@ public class MapsActivity extends AppCompatActivity
         textViewAccMile = (TextView) findViewById(R.id.textViewAccMile);
         textViewSpeed = (TextView) findViewById(R.id.textViewSpeed);
 
+
+
         configGoogleApiClient();
         configLocationRequest();
 
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+        autocompleteFragment.getView().setBackgroundColor(Color.WHITE);
 
         mapPlaceSelectionListener = new MapPlaceSelectionListener(this, googleApiClient);
         autocompleteFragment.setOnPlaceSelectedListener(mapPlaceSelectionListener);
@@ -475,8 +475,10 @@ public class MapsActivity extends AppCompatActivity
 
         mFirebase = new Firebase(URL_FIREBASE);
 
-        if (currentUserInfo == null) createUser();
+        createUser();
         if (currentUserInfo != null) updateUserToFirebase(currentUserInfo);
+
+        setupNavigation(navigationView);
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -489,6 +491,22 @@ public class MapsActivity extends AppCompatActivity
         // Note: need to bring type into PreUtil
         // http://stackoverflow.com/questions/20773850/gson-typetoken-with-dynamic-arraylist-item-type
         prefUtilUserRoute = new PrefUtil<UserRoute>(this.getApplicationContext(), new TypeToken<UserRoute>(){}.getType());
+    }
+
+    private void setupNavigation(NavigationView navigationView) {
+        setupNavigationHeader(navigationView);
+    }
+
+    private void setupNavigationHeader(NavigationView navigationView) {
+        View header = navigationView.inflateHeaderView(R.layout.navigation_header);
+        textViewNavHeaderName = (TextView) header.findViewById(R.id.navigation_header_name);
+        textViewNavHeaderName.setText(currentUserInfo.name);
+
+        ImageView img = (ImageView) header.findViewById(R.id.navigation_header_image);
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), currentUserInfo.iconNo);
+        Bitmap roundmap = ImageUtil.getRoundedCornerBitmap(bitmap);
+        img.setImageBitmap(roundmap);
+
     }
 
     private void restoreSaveInstanceState(Bundle savedInstanceState) {
@@ -553,9 +571,6 @@ public class MapsActivity extends AppCompatActivity
 
         currentUserInfo = (name != null) ? new CurrentUserInfo(name, iconNo) : null;
         Log.d(TAG, "createUser: " + currentUserInfo);
-
-        // Put user to user
-
     }
 
     public static CurrentUserInfo getCurrentUserInfo() {

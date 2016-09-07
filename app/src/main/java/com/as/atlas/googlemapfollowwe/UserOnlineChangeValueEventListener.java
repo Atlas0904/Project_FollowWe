@@ -25,7 +25,6 @@ public class UserOnlineChangeValueEventListener implements ValueEventListener, C
     private Firebase root;
     private Firebase ref;
     private CurrentUserInfo currentUserInfo;
-//    private BitmapDescriptor defaultIcon = BitmapDescriptorFactory.fromResource(R.mipmap.icon_user_boy);
 
     HashMap<String, UserMisc> users;
 
@@ -40,7 +39,6 @@ public class UserOnlineChangeValueEventListener implements ValueEventListener, C
     }
 
     public void updateCurrentUserLocation(CurrentUserInfo currentUserInfo, Location location) {
-
         User user = new User(currentUserInfo.name, currentUserInfo.latLng.latitude, currentUserInfo.latLng.longitude, currentUserInfo.iconNo);
         ref.child(currentUserInfo.name).setValue(user);
     }
@@ -68,6 +66,16 @@ public class UserOnlineChangeValueEventListener implements ValueEventListener, C
             } else {
                 Log.d(TAG, "UserOnlineChangeValueEventListener contain user name:" + user.name);
                 UserMisc userMisc = users.get(user.name);
+
+                // icon change case
+                if (user.iconNo != userMisc.user.iconNo) {
+                    userMisc.marker.remove();
+                    userMisc = createUserMisc(user);
+                    users.put(user.name, userMisc);
+                    return;
+                }
+
+                // Latlng change case
                 userMisc.changed =  (user.lat != userMisc.user.lat || user.lng != userMisc.user.lng);
                 if (userMisc.changed) {
                     userMisc.user.lat = user.lat;

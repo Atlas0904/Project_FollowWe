@@ -17,11 +17,14 @@ Moreover, user can set destination to everyone. That is, all of you can know whe
 
 #ToDO
 1. Password check
-2. Chat room
-3. Navigation menu implement
-4. Optimize user route
-5. Optimize the algorithm for walking, driving
-6. Let user to choose arrived type
+2. Optimize user route
+3. Optimize the algorithm for walking, driving
+4. Let user to choose arrived type
+5. Need to beatify chat room UI
+6. Hiking app?
+
+#Optimize
+1. Distance part need to be more precise
 
 Component:
 
@@ -35,6 +38,7 @@ Icon and picture Resource from:
 All icon contributed  by flaticon.com Under CC: Freepik. Designed by Freepik and distributed by Flaticon
 
 #Version
+2016/09/07: Adjust layout
 2016/09/05: Add One2One chat feature. Refactor using ChatValueEventListener.
 2016/09/02: Share action bar
 2016/09/02: Complete group chat room part. Use BaseValueEventListener as a general Firebase element return

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/menu_save_points"
-        android:title="Save Points" />
-    <item android:id="@+id/menu_clear_points"
-        android:title="Clear Points" />
-    <item android:id="@+id/menu_sync_to_cloud"
-        android:title="Sync to Cloud" />
+    <!--<item android:id="@+id/menu_save_points"-->
+        <!--android:title="Save Points" />-->
+    <!--<item android:id="@+id/menu_clear_points"-->
+        <!--android:title="Clear Points" />-->
+    <!--<item android:id="@+id/menu_sync_to_cloud"-->
+        <!--android:title="Sync to Cloud" />-->
     <item android:id="@+id/menu_save_route_to_pref"
         android:title="Save route (Pref)" />
     <item android:id="@+id/menu_load_route_from_pref"
